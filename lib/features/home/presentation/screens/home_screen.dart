@@ -1,0 +1,349 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../bookings/domain/entities/booking.dart';
+import '../../../bookings/presentation/providers/bookings_provider.dart';
+import '../../../flights/presentation/widgets/flight_route_display.dart';
+import '../../../flights/presentation/widgets/status_badge.dart';
+import '../../../user/domain/entities/user.dart';
+import '../../../user/presentation/providers/user_provider.dart';
+
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bookingsAsync = ref.watch(bookingsProvider);
+    final userAsync = ref.watch(currentUserProvider);
+
+    return Scaffold(
+      body: userAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
+        error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
+        data: (user) => bookingsAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
+          error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
+          data: (bookings) => _HomeBody(user: user, bookings: bookings),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeBody extends StatelessWidget {
+  final User user;
+  final List<Booking> bookings;
+
+  const _HomeBody({required this.user, required this.bookings});
+
+  @override
+  Widget build(BuildContext context) {
+    final upcoming = bookings.where((b) => b.isUpcoming).toList();
+
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          expandedHeight: 120,
+          floating: true,
+          pinned: true,
+          backgroundColor: AppColors.background,
+          flexibleSpace: FlexibleSpaceBar(
+            titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            title: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Good ${_greeting()}, ${user.firstName}',
+                  style: const TextStyle(color: AppColors.white, fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.3),
+                ),
+                Text(
+                  DateFormat('EEEE, MMMM d').format(DateTime.now()),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w400),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: const BoxDecoration(color: AppColors.gold, shape: BoxShape.circle),
+                child: Center(
+                  child: Text(user.initials, style: const TextStyle(color: AppColors.background, fontSize: 14, fontWeight: FontWeight.w800)),
+                ),
+              ),
+            ),
+          ],
+        ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              if (upcoming.isNotEmpty) ...[
+                _NextFlightCard(booking: upcoming.first)
+                    .animate()
+                    .fadeIn(duration: 400.ms)
+                    .slideY(begin: 0.1, end: 0),
+                const SizedBox(height: 28),
+              ],
+              _SectionHeader(title: 'Upcoming Trips', count: upcoming.length),
+              const SizedBox(height: 12),
+              ...upcoming.map((b) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _UpcomingBookingCard(booking: b),
+                  )),
+              const SizedBox(height: 28),
+              _LoyaltyCard(user: user)
+                  .animate(delay: 200.ms)
+                  .fadeIn(duration: 400.ms)
+                  .slideY(begin: 0.1, end: 0),
+              const SizedBox(height: 28),
+              const _SectionHeader(title: 'Popular Routes'),
+              const SizedBox(height: 12),
+              const _PopularRoutesGrid(),
+              const SizedBox(height: 32),
+            ]),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _greeting() {
+    final h = DateTime.now().hour;
+    if (h < 12) return 'morning';
+    if (h < 17) return 'afternoon';
+    return 'evening';
+  }
+}
+
+class _NextFlightCard extends StatelessWidget {
+  final Booking booking;
+  const _NextFlightCard({required this.booking});
+
+  @override
+  Widget build(BuildContext context) {
+    final diff = booking.flight.departureTime.difference(DateTime.now());
+    final daysLeft = diff.inDays;
+    final hoursLeft = diff.inHours.remainder(24);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFF2A1F00), Color(0xFF1A1B25)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('NEXT FLIGHT', style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+              StatusBadge(status: booking.flight.status),
+            ],
+          ),
+          const SizedBox(height: 20),
+          FlightRouteDisplay(flight: booking.flight),
+          const SizedBox(height: 20),
+          const Divider(color: AppColors.divider),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _InfoChip(icon: Icons.confirmation_number_outlined, label: booking.confirmationCode),
+              const SizedBox(width: 12),
+              _InfoChip(
+                icon: Icons.access_time_rounded,
+                label: daysLeft > 0 ? '$daysLeft days, ${hoursLeft}h away' : '${diff.inHours}h ${diff.inMinutes.remainder(60)}m away',
+              ),
+            ],
+          ),
+          if (booking.seatNumber != null) ...[
+            const SizedBox(height: 10),
+            _InfoChip(icon: Icons.airline_seat_recline_normal, label: 'Seat ${booking.seatNumber}'),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _InfoChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppColors.textSecondary),
+          const SizedBox(width: 5),
+          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
+        ],
+      );
+}
+
+class _UpcomingBookingCard extends StatelessWidget {
+  final Booking booking;
+  const _UpcomingBookingCard({required this.booking});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+      child: Column(
+        children: [
+          FlightRouteDisplay(flight: booking.flight, compact: true),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(DateFormat('MMM d, yyyy').format(booking.flight.departureTime), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+              Text(booking.confirmationCode, style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LoyaltyCard extends StatelessWidget {
+  final User user;
+  const _LoyaltyCard({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [Color(0xFF1A2040), Color(0xFF0D1220)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('CLUB JSX', style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(color: AppColors.gold.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
+                child: const Text('Member', style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _LoyaltyStat(value: '\$${user.creditBalance.toStringAsFixed(0)}', label: 'JSX Credit')),
+              Container(width: 1, height: 40, color: AppColors.divider),
+              Expanded(child: _LoyaltyStat(value: user.loyaltyPoints.toString(), label: 'Points Earned')),
+              Container(width: 1, height: 40, color: AppColors.divider),
+              const Expanded(child: _LoyaltyStat(value: '5%', label: 'Back on Flights')),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: (user.loyaltyPoints % 1000) / 1000,
+              backgroundColor: AppColors.divider,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.gold),
+              minHeight: 4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text('${1000 - (user.loyaltyPoints % 1000)} points to next reward', style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+        ],
+      ),
+    );
+  }
+}
+
+class _LoyaltyStat extends StatelessWidget {
+  final String value;
+  final String label;
+  const _LoyaltyStat({required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) => Column(
+        children: [
+          Text(value, style: const TextStyle(color: AppColors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 2),
+          Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 10), textAlign: TextAlign.center),
+        ],
+      );
+}
+
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final int? count;
+  const _SectionHeader({required this.title, this.count});
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: [
+          Text(title, style: Theme.of(context).textTheme.headlineMedium),
+          if (count != null) ...[
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(color: AppColors.gold.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
+              child: Text('$count', style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ],
+      );
+}
+
+class _PopularRoutesGrid extends StatelessWidget {
+  const _PopularRoutesGrid();
+
+  static const _routes = [
+    ('DAL', 'BUR', 'Dallas → LA'),
+    ('BUR', 'DAL', 'LA → Dallas'),
+    ('DAL', 'LAS', 'Dallas → Vegas'),
+    ('DAL', 'OAK', 'Dallas → Oakland'),
+    ('AUS', 'DAL', 'Austin → Dallas'),
+    ('LAS', 'BUR', 'Vegas → LA'),
+  ];
+
+  @override
+  Widget build(BuildContext context) => GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 10,
+        crossAxisSpacing: 10,
+        childAspectRatio: 2.2,
+        children: _routes.map((r) => _RouteChip(label: r.$3)).toList(),
+      );
+}
+
+class _RouteChip extends StatelessWidget {
+  final String label;
+  const _RouteChip({required this.label});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
+        child: Row(
+          children: [
+            Expanded(child: Text(label, style: const TextStyle(color: AppColors.white, fontSize: 12, fontWeight: FontWeight.w600))),
+            const Icon(Icons.arrow_forward_ios, size: 10, color: AppColors.textMuted),
+          ],
+        ),
+      );
+}
