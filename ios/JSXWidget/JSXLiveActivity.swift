@@ -4,27 +4,34 @@ import WidgetKit
 
 // MARK: - Helpers
 
+private let gold = Color(red: 0.91, green: 0.72, blue: 0.29)
+private let bg   = Color(red: 0.05, green: 0.055, blue: 0.078)
+
 private extension JSXFlightAttributes.ContentState {
     var statusColor: Color {
         switch status {
-        case "On Time":  return .green
-        case "Boarding": return Color(red: 1, green: 0.84, blue: 0.29)
-        case "Delayed":  return .orange
-        default:         return .secondary
+        case "On Time":   return .green
+        case "Boarding":  return gold
+        case "En Route":  return .blue
+        case "Delayed":   return .orange
+        case "Landing":   return .blue
+        case "Landed":    return .green
+        default:          return .secondary
         }
     }
 
     var phaseIcon: String {
         switch phase {
-        case "climbing":   return "airplane.departure"
-        case "descending": return "airplane.arrival"
-        case "landed":     return "checkmark.circle.fill"
-        default:           return "airplane"
+        case "boarding":     return "figure.walk"
+        case "en_route":     return "airplane"
+        case "landing":      return "airplane.arrival"
+        case "landed":       return "checkmark.circle.fill"
+        default:             return "airplane.departure"
         }
     }
 }
 
-// MARK: - Lock Screen / Banner view
+// MARK: - Lock Screen / Banner
 
 struct LALockScreenView: View {
     let attrs: JSXFlightAttributes
@@ -32,41 +39,35 @@ struct LALockScreenView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            // Header row
+            // Header
             HStack {
                 Text("JSX")
                     .font(.system(size: 13, weight: .black))
-                    .foregroundStyle(Color(red: 0.91, green: 0.72, blue: 0.29))
+                    .foregroundStyle(gold)
                 Spacer()
-                Circle()
-                    .fill(state.statusColor)
-                    .frame(width: 7, height: 7)
+                Circle().fill(state.statusColor).frame(width: 7, height: 7)
                 Text(state.status)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(state.statusColor)
             }
 
-            // Route + progress
+            // Route + progress bar
             HStack(alignment: .center, spacing: 12) {
                 VStack(spacing: 2) {
                     Text(attrs.origin)
                         .font(.system(size: 28, weight: .black))
                     Text(attrs.originCity)
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 10)).foregroundStyle(.secondary)
                 }
 
                 VStack(spacing: 4) {
                     Image(systemName: state.phaseIcon)
                         .font(.system(size: 16))
-                        .foregroundStyle(Color(red: 0.91, green: 0.72, blue: 0.29))
+                        .foregroundStyle(gold)
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            Capsule()
-                                .fill(Color.white.opacity(0.15))
-                                .frame(height: 3)
-                            Capsule()
-                                .fill(Color(red: 0.91, green: 0.72, blue: 0.29))
+                            Capsule().fill(Color.white.opacity(0.15)).frame(height: 3)
+                            Capsule().fill(gold)
                                 .frame(width: geo.size.width * state.progress, height: 3)
                         }
                     }
@@ -78,34 +79,53 @@ struct LALockScreenView: View {
                     Text(attrs.destination)
                         .font(.system(size: 28, weight: .black))
                     Text(attrs.destinationCity)
-                        .font(.system(size: 10))
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 10)).foregroundStyle(.secondary)
                 }
             }
 
-            // Footer row
-            HStack {
-                Label("\(state.altitudeFt / 1000)k ft", systemImage: "arrow.up")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                Spacer()
-                if state.minutesRemaining > 0 {
-                    Text("\(state.minutesRemaining) min remaining")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text(attrs.arrivalTime)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Label("\(state.speedMph) mph", systemImage: "speedometer")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-            }
+            // Footer — phase-aware
+            phaseFooter
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+    }
+
+    @ViewBuilder
+    private var phaseFooter: some View {
+        switch state.phase {
+        case "pre_departure", "boarding":
+            HStack {
+                Label("Gate \(state.gate)", systemImage: "door.right.hand.open")
+                    .font(.system(size: 11, weight: .semibold))
+                Spacer()
+                Label("Seat \(attrs.seat)", systemImage: "carseat.left")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Label("Boards \(state.boardingTime)", systemImage: "clock")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+        case "en_route", "landing":
+            HStack {
+                Label("\(state.altitudeFt / 1000)k ft", systemImage: "arrow.up")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+                Spacer()
+                Text("\(state.minutesRemaining) min remaining")
+                    .font(.system(size: 11, weight: .semibold))
+                Spacer()
+                Label("\(state.speedMph) mph", systemImage: "speedometer")
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
+            }
+        default: // landed
+            HStack {
+                Spacer()
+                Label("Landed at \(attrs.destinationCity)", systemImage: "checkmark.circle.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.green)
+                Spacer()
+            }
+        }
     }
 }
 
@@ -113,12 +133,11 @@ struct LALockScreenView: View {
 
 struct LACompactLeading: View {
     let attrs: JSXFlightAttributes
-
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "airplane")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color(red: 0.91, green: 0.72, blue: 0.29))
+                .foregroundStyle(gold)
             Text("\(attrs.origin)→\(attrs.destination)")
                 .font(.system(size: 12, weight: .bold))
         }
@@ -127,7 +146,6 @@ struct LACompactLeading: View {
 
 struct LACompactTrailing: View {
     let state: JSXFlightAttributes.ContentState
-
     var body: some View {
         Text(state.minutesRemaining > 0 ? "\(state.minutesRemaining)m" : "Arr")
             .font(.system(size: 12, weight: .semibold))
@@ -139,11 +157,10 @@ struct LACompactTrailing: View {
 
 struct LAMinimalView: View {
     let state: JSXFlightAttributes.ContentState
-
     var body: some View {
         Image(systemName: state.phaseIcon)
             .font(.system(size: 12))
-            .foregroundStyle(Color(red: 0.91, green: 0.72, blue: 0.29))
+            .foregroundStyle(gold)
     }
 }
 
@@ -158,52 +175,59 @@ struct LAExpandedView: View {
             HStack {
                 Text("JSX \(attrs.confirmationCode)")
                     .font(.system(size: 13, weight: .bold, design: .monospaced))
-                    .foregroundStyle(Color(red: 0.91, green: 0.72, blue: 0.29))
+                    .foregroundStyle(gold)
                 Spacer()
-                Circle()
-                    .fill(state.statusColor)
-                    .frame(width: 7, height: 7)
+                Circle().fill(state.statusColor).frame(width: 7, height: 7)
                 Text(state.status)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(state.statusColor)
             }
 
             HStack(spacing: 12) {
-                Text(attrs.origin)
-                    .font(.system(size: 24, weight: .black))
+                Text(attrs.origin).font(.system(size: 24, weight: .black))
                 Spacer()
-                Image(systemName: state.phaseIcon)
-                    .foregroundStyle(Color(red: 0.91, green: 0.72, blue: 0.29))
+                Image(systemName: state.phaseIcon).foregroundStyle(gold)
                 Spacer()
-                Text(attrs.destination)
-                    .font(.system(size: 24, weight: .black))
+                Text(attrs.destination).font(.system(size: 24, weight: .black))
             }
 
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
-                    Capsule()
-                        .fill(Color.white.opacity(0.15))
-                        .frame(height: 4)
-                    Capsule()
-                        .fill(Color(red: 0.91, green: 0.72, blue: 0.29))
+                    Capsule().fill(Color.white.opacity(0.15)).frame(height: 4)
+                    Capsule().fill(gold)
                         .frame(width: geo.size.width * state.progress, height: 4)
                 }
             }
             .frame(height: 4)
 
-            HStack {
-                Text(attrs.departureTime)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                Spacer()
-                if state.minutesRemaining > 0 {
+            // Phase-aware bottom row
+            switch state.phase {
+            case "pre_departure", "boarding":
+                HStack {
+                    Text("Gate \(state.gate)")
+                        .font(.system(size: 11, weight: .semibold))
+                    Spacer()
+                    Text("Seat \(attrs.seat)")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                    Spacer()
+                    Text("Boards \(state.boardingTime)")
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                }
+            case "en_route", "landing":
+                HStack {
+                    Text(state.departureTime)
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
+                    Spacer()
                     Text("\(state.minutesRemaining) min left")
                         .font(.system(size: 11, weight: .semibold))
+                    Spacer()
+                    Text(state.arrivalTime)
+                        .font(.system(size: 11)).foregroundStyle(.secondary)
                 }
-                Spacer()
-                Text(attrs.arrivalTime)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+            default:
+                Label("Landed at \(attrs.destinationCity)", systemImage: "checkmark.circle.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.green)
             }
         }
         .padding(.horizontal, 16)
@@ -217,7 +241,7 @@ struct JSXFlightLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: JSXFlightAttributes.self) { context in
             LALockScreenView(attrs: context.attributes, state: context.state)
-                .activityBackgroundTint(Color(red: 0.05, green: 0.055, blue: 0.078))
+                .activityBackgroundTint(bg)
                 .activitySystemActionForegroundColor(.white)
         } dynamicIsland: { context in
             DynamicIsland {

@@ -24,9 +24,8 @@ final class LiveActivityManager {
             originCity:       args["originCity"]       as? String ?? "",
             destination:      args["destination"]      as? String ?? "",
             destinationCity:  args["destinationCity"]  as? String ?? "",
-            departureTime:    args["departureTime"]    as? String ?? "",
-            arrivalTime:      args["arrivalTime"]      as? String ?? "",
-            confirmationCode: args["confirmationCode"] as? String ?? ""
+            confirmationCode: args["confirmationCode"] as? String ?? "",
+            seat:             args["seat"]             as? String ?? ""
         )
         let state = contentState(from: args)
         let content = ActivityContent(state: state, staleDate: nil)
@@ -63,8 +62,12 @@ final class LiveActivityManager {
     private func contentState(from args: [String: Any]) -> JSXFlightAttributes.ContentState {
         JSXFlightAttributes.ContentState(
             status:           args["status"]           as? String ?? "On Time",
-            phase:            args["phase"]            as? String ?? "cruising",
+            phase:            args["phase"]            as? String ?? "pre_departure",
             progress:         args["progress"]         as? Double ?? 0,
+            departureTime:    args["departureTime"]    as? String ?? "",
+            arrivalTime:      args["arrivalTime"]      as? String ?? "",
+            gate:             args["gate"]             as? String ?? "",
+            boardingTime:     args["boardingTime"]     as? String ?? "",
             minutesRemaining: args["minutesRemaining"] as? Int    ?? 0,
             altitudeFt:       args["altitudeFt"]       as? Int    ?? 0,
             speedMph:         args["speedMph"]         as? Int    ?? 0

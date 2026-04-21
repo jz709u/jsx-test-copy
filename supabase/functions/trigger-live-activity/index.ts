@@ -90,14 +90,14 @@ Deno.serve(async () => {
       const origin = fs.airports
       const dest = fs.dest
 
-      const minutesRemaining = Math.round(
-        (new Date(booking.departure_time).getTime() - Date.now()) / 60000,
-      )
-
       const contentState = {
         status:           fs.status === 'delayed' ? 'Delayed' : fs.status === 'boarding' ? 'Boarding' : 'On Time',
-        phase:            'boarding',
+        phase:            'pre_departure',
         progress:         0,
+        departureTime:    fmtTime(booking.departure_time),
+        arrivalTime:      fmtTime(booking.arrival_time),
+        gate:             booking.gate ?? '',
+        boardingTime:     fmtTime(booking.departure_time), // approximate: same as departure
         minutesRemaining: minutesRemaining,
         altitudeFt:       0,
         speedMph:         0,
@@ -147,9 +147,8 @@ Deno.serve(async () => {
             originCity:       origin.city,
             destination:      dest.code,
             destinationCity:  dest.city,
-            departureTime:    fmtTime(booking.departure_time),
-            arrivalTime:      fmtTime(booking.arrival_time),
             confirmationCode: booking.confirmation_code,
+            seat:             booking.seat_number ? String(booking.seat_number) : '',
           },
           'content-state': contentState,
           alert: {

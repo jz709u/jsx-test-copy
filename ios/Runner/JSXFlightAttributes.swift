@@ -5,22 +5,24 @@ import Foundation
 
 struct JSXFlightAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
-        // Updated dynamically
-        var status: String
-        var phase: String
+        var status: String        // "On Time" | "Delayed" | "Boarding" | "En Route" | "Landing" | "Landed"
+        var phase: String         // "pre_departure" | "boarding" | "en_route" | "landing" | "landed"
         var progress: Double      // 0.0 – 1.0
+        var departureTime: String // can change if delayed
+        var arrivalTime: String   // can change if delayed
+        var gate: String          // can change
+        var boardingTime: String  // can change
         var minutesRemaining: Int
         var altitudeFt: Int
         var speedMph: Int
     }
 
-    // Set once at creation
+    // Truly static — never changes after booking
     var flightId: String
     var origin: String
     var originCity: String
     var destination: String
     var destinationCity: String
-    var departureTime: String
-    var arrivalTime: String
     var confirmationCode: String
+    var seat: String
 }
