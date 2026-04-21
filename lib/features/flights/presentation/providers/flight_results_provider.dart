@@ -2,16 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/repositories/supabase_flight_repository.dart';
-import '../../data/sources/supabase_flight_data_source.dart';
 import '../../domain/entities/airport.dart';
 import '../../domain/entities/flight.dart';
 import '../../domain/repositories/flight_repository.dart';
 import '../../domain/use_cases/search_flights.dart';
 
 final flightRepositoryProvider = Provider<FlightRepository>(
-  (_) => SupabaseFlightRepository(
-    SupabaseFlightDataSource(Supabase.instance.client),
-  ),
+  (_) => SupabaseFlightRepository(Supabase.instance.client),
 );
 
 final searchFlightsUseCaseProvider = Provider<SearchFlights>(
