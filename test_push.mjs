@@ -3,18 +3,20 @@ import { readFileSync } from 'fs'
 import http2 from 'http2'
 const { connect } = http2
 
-const KEY_ID = '4LJ7W7NHMC'
-const TEAM_ID = '9SMXYTBRQ4'
+const KEY_ID    = '4LJ7W7NHMC'
+const TEAM_ID   = '9SMXYTBRQ4'
 const BUNDLE_ID = 'com.jsx.jsxAppCopy'
-const DEVICE_TOKEN = 'f5c3db35277f99f826159ad1e6f3021147a753f842f013cc0b6b43428393422a'
-const P8_PATH = '/Users/hyro010/Downloads/AuthKey_4LJ7W7NHMC.p8'
+const P8_PATH   = '/Users/hyro010/Downloads/AuthKey_4LJ7W7NHMC.p8'
+
+// Paste the push-to-start token from Xcode console: [LA] push-to-start token: ...
+const START_TOKEN = process.env.START_TOKEN ?? 'PASTE_LA_START_TOKEN_HERE'
 
 function base64url(buf) {
   return buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
 }
 
 function buildJwt() {
-  const header = base64url(Buffer.from(JSON.stringify({ alg: 'ES256', kid: KEY_ID })))
+  const header  = base64url(Buffer.from(JSON.stringify({ alg: 'ES256', kid: KEY_ID })))
   const payload = base64url(Buffer.from(JSON.stringify({ iss: TEAM_ID, iat: Math.floor(Date.now() / 1000) })))
   const unsigned = `${header}.${payload}`
   const sign = createSign('SHA256')
@@ -24,35 +26,48 @@ function buildJwt() {
   return `${unsigned}.${sig}`
 }
 
-const jwt = buildJwt()
+const jwt  = buildJwt()
+const now  = Date.now()
+
 const body = JSON.stringify({
-  aps: { 'content-available': 1 },
-  jsx_action: 'start_live_activity',
-  flight_id: 'JSX-1021',
-  origin: 'DAL',
-  origin_city: 'Dallas',
-  destination: 'BUR',
-  destination_city: 'Los Angeles',
-  departure_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-  arrival_time: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
-  confirmation_code: 'JSX4K8P',
-  status: 'On Time',
-  phase: 'boarding',
-  progress: 0,
-  minutes_remaining: 120,
-  altitude_ft: 0,
-  speed_mph: 0,
+  aps: {
+    timestamp: Math.floor(now / 1000),
+    event: 'start',
+    'attributes-type': 'JSXFlightAttributes',
+    attributes: {
+      flightId:         'JSX-1021',
+      origin:           'DAL',
+      originCity:       'Dallas',
+      destination:      'BUR',
+      destinationCity:  'Los Angeles',
+      departureTime:    '7:30 AM',
+      arrivalTime:      '9:45 AM',
+      confirmationCode: 'JSX4K8P',
+    },
+    'content-state': {
+      status:           'On Time',
+      phase:            'boarding',
+      progress:         0,
+      minutesRemaining: 120,
+      altitudeFt:       0,
+      speedMph:         0,
+    },
+    alert: {
+      title: 'DAL → BUR',
+      body:  'JSX-1021 added to Live Activities',
+    },
+  },
 })
 
 const session = connect('https://api.sandbox.push.apple.com')
-const client = session.request({
-  ':method': 'POST',
-  ':path': `/3/device/${DEVICE_TOKEN}`,
-  'authorization': `bearer ${jwt}`,
-  'apns-push-type': 'background',
-  'apns-topic': BUNDLE_ID,
-  'apns-priority': '5',
-  'content-type': 'application/json',
+const client  = session.request({
+  ':method':        'POST',
+  ':path':          `/3/device/${START_TOKEN}`,
+  'authorization':  `bearer ${jwt}`,
+  'apns-push-type': 'liveactivity',
+  'apns-topic':     `${BUNDLE_ID}.push-type.liveactivity`,
+  'apns-priority':  '10',
+  'content-type':   'application/json',
   'content-length': Buffer.byteLength(body),
 })
 

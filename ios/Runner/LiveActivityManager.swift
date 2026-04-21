@@ -71,5 +71,22 @@ final class LiveActivityManager {
         )
     }
 
+    /// Called when iOS starts a Live Activity via push-to-start.
+    /// Stores it and begins listening for its update push token.
+    func adoptIfNeeded(_ activity: Activity<JSXFlightAttributes>) {
+        guard self.activity == nil else { return }
+        self.activity = activity
+        print("[LA] adopted push-started activity id=\(activity.id) flightId=\(activity.attributes.flightId)")
+        Task { [weak self] in
+            for await tokenData in activity.pushTokenUpdates {
+                let hex = tokenData.map { String(format: "%02x", $0) }.joined()
+                print("[LA] update token for push-started activity: \(hex.prefix(16))...")
+                self?.latestPushToken = hex
+                UserDefaults(suiteName: "group.jsx.jsxAppCopy")?.set(hex, forKey: "jsx_la_push_token")
+                SupabaseUploader.uploadUpdateToken(flightId: activity.attributes.flightId, pushToken: hex)
+            }
+        }
+    }
+
     enum LAError: Error { case notEnabled }
 }

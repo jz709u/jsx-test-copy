@@ -10,9 +10,38 @@ enum SupabaseUploader {
 
     /// Upsert the APNs device token so the backend can send silent pushes.
     static func upsertDeviceToken(_ token: String) {
-        post(
+        request(
+            method: "POST",
             path: "/device_tokens",
             body: ["user_id": devUserId, "token": token, "updated_at": iso8601Now()],
+            prefer: "resolution=merge-duplicates"
+        )
+    }
+
+    /// PATCH the push-to-start token onto the existing device_tokens row.
+    /// Retries for up to 10s because the row may not exist yet when this fires.
+    static func upsertLAStartToken(_ token: String) {
+        Task {
+            for attempt in 0..<5 {
+                if attempt > 0 { try? await Task.sleep(nanoseconds: 2_000_000_000) }
+                let updated = request(
+                    method: "PATCH",
+                    path: "/device_tokens?user_id=eq.\(devUserId)",
+                    body: ["la_start_token": token, "updated_at": iso8601Now()],
+                    prefer: "return=representation"
+                )
+                if updated { return }
+            }
+            print("[Supabase] la_start_token: gave up after 5 attempts")
+        }
+    }
+
+    /// Upload the Live Activity update token for a specific flight.
+    static func uploadUpdateToken(flightId: String, pushToken: String) {
+        request(
+            method: "POST",
+            path: "/live_activities",
+            body: ["flight_id": flightId, "push_token": pushToken],
             prefer: "resolution=merge-duplicates"
         )
     }
@@ -24,11 +53,7 @@ enum SupabaseUploader {
             for _ in 0..<60 {
                 try? await Task.sleep(nanoseconds: 500_000_000)
                 guard let token = LiveActivityManager.shared.latestPushToken else { continue }
-                post(
-                    path: "/live_activities",
-                    body: ["flight_id": flightId, "push_token": token],
-                    prefer: "resolution=merge-duplicates"
-                )
+                uploadUpdateToken(flightId: flightId, pushToken: token)
                 print("[LA] background: live activity token uploaded")
                 return
             }
@@ -36,18 +61,35 @@ enum SupabaseUploader {
         }
     }
 
-    private static func post(path: String, body: [String: String], prefer: String) {
-        guard let url = URL(string: baseURL + path) else { return }
+    @discardableResult
+    private static func request(method: String, path: String, body: [String: String], prefer: String) -> Bool {
+        guard let url = URL(string: baseURL + path) else { return false }
         var req = URLRequest(url: url)
-        req.httpMethod = "POST"
+        req.httpMethod = method
         req.setValue("Bearer \(anonKey)", forHTTPHeaderField: "Authorization")
         req.setValue(anonKey, forHTTPHeaderField: "apikey")
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         req.setValue(prefer, forHTTPHeaderField: "Prefer")
         req.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        URLSession.shared.dataTask(with: req) { _, _, err in
-            if let err { print("[Supabase] upload error: \(err)") }
+
+        var success = false
+        let sem = DispatchSemaphore(value: 0)
+        URLSession.shared.dataTask(with: req) { data, resp, err in
+            if let err {
+                print("[Supabase] \(method) \(path) error: \(err)")
+            } else if let http = resp as? HTTPURLResponse {
+                let body = data.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+                if http.statusCode >= 300 {
+                    print("[Supabase] \(method) \(path) HTTP \(http.statusCode): \(body)")
+                } else {
+                    print("[Supabase] \(method) \(path) → \(http.statusCode)")
+                    success = true
+                }
+            }
+            sem.signal()
         }.resume()
+        sem.wait()
+        return success
     }
 
     private static func iso8601Now() -> String {

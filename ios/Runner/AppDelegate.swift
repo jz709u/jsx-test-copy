@@ -1,3 +1,4 @@
+import ActivityKit
 import CoreSpotlight
 import Flutter
 import UIKit
@@ -14,13 +15,29 @@ import UserNotifications
     ) -> Bool {
         GeneratedPluginRegistrant.register(with: self)
 
-        // Register for remote (silent) push notifications
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+        // Register for remote push notifications
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
+            granted, _ in
             if granted {
                 DispatchQueue.main.async { UIApplication.shared.registerForRemoteNotifications() }
             }
         }
-
+        
+        // Receive the push-to-start token so the server can start Live Activities
+        // without requiring the app to be in the foreground (iOS 17.2+)
+        Task {
+            for await tokenData in Activity<JSXFlightAttributes>.pushToStartTokenUpdates {
+                let hex = tokenData.map { String(format: "%02x", $0) }.joined()
+                print("[LA] push-to-start token: \(hex.prefix(16))...")
+                SupabaseUploader.upsertLAStartToken(hex)
+            }
+        }
+        Task {
+            for await activity in Activity<JSXFlightAttributes>.activityUpdates {
+                LiveActivityManager.shared.adoptIfNeeded(activity)
+            }
+        }
+        
         let controller = window?.rootViewController as! FlutterViewController
 
         // Navigation channel — App Intents / Spotlight write a pending route;
@@ -31,7 +48,8 @@ import UserNotifications
         )
         navigationChannel?.setMethodCallHandler { [weak self] call, result in
             guard call.method == "getPendingRoute" else {
-                result(FlutterMethodNotImplemented); return
+                result(FlutterMethodNotImplemented)
+                return
             }
             let d = UserDefaults(suiteName: "group.jsx.jsxAppCopy")
             let route = d?.string(forKey: "jsx_pending_route")
@@ -58,63 +76,66 @@ import UserNotifications
                 result(FlutterMethodNotImplemented)
             }
         }
-
+        
         // Live Activity channel
-        if #available(iOS 16.2, *) {
-            let laChannel = FlutterMethodChannel(
-                name: "jsx.app/live_activity",
-                binaryMessenger: controller.binaryMessenger
-            )
-            laChannel.setMethodCallHandler { call, result in
-                let args = call.arguments as? [String: Any] ?? [:]
-                switch call.method {
-                case "start":
-                    do {
-                        try LiveActivityManager.shared.start(args)
-                        result(nil)
-                    } catch {
-                        result(FlutterError(code: "START_FAILED",
-                                            message: error.localizedDescription,
-                                            details: nil))
-                    }
-                case "update":
-                    LiveActivityManager.shared.update(args)
+        let laChannel = FlutterMethodChannel(
+            name: "jsx.app/live_activity",
+            binaryMessenger: controller.binaryMessenger
+        )
+        laChannel.setMethodCallHandler { call, result in
+            let args = call.arguments as? [String: Any] ?? [:]
+            switch call.method {
+            case "start":
+                do {
+                    try LiveActivityManager.shared.start(args)
                     result(nil)
-                case "end":
-                    LiveActivityManager.shared.end()
-                    result(nil)
-                case "getActivityPushToken":
-                    result(LiveActivityManager.shared.latestPushToken)
-                default:
-                    result(FlutterMethodNotImplemented)
+                } catch {
+                    result(
+                        FlutterError(
+                            code: "START_FAILED",
+                            message: error.localizedDescription,
+                            details: nil))
                 }
+            case "update":
+                LiveActivityManager.shared.update(args)
+                result(nil)
+            case "end":
+                LiveActivityManager.shared.end()
+                result(nil)
+            case "getActivityPushToken":
+                result(LiveActivityManager.shared.latestPushToken)
+            default:
+                result(FlutterMethodNotImplemented)
             }
         }
-
+        
         // Register Siri shortcut phrases
-        if #available(iOS 16.4, *) {
-            JSXAppShortcuts.updateAppShortcutParameters()
-        }
+        JSXAppShortcuts.updateAppShortcutParameters()
+
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
 
     // Upload device token to Supabase so backend can send silent pushes
-    override func application(_ application: UIApplication,
-                              didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    override func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
         let hex = deviceToken.map { String(format: "%02x", $0) }.joined()
         print("[Push] device token: \(hex.prefix(16))...")
         SupabaseUploader.upsertDeviceToken(hex)
     }
 
     // Handle silent push → auto-start Live Activity
-    override func application(_ application: UIApplication,
-                              didReceiveRemoteNotification userInfo: [AnyHashable: Any],
-                              fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+    override func application(
+        _ application: UIApplication,
+        didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+        fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+    ) {
         print("[Push] didReceiveRemoteNotification called, keys: \(userInfo.keys.map { $0 })")
         guard let action = userInfo["jsx_action"] as? String,
-              action == "start_live_activity",
-              #available(iOS 16.2, *) else {
+            action == "start_live_activity"
+        else {
             print("[Push] guard failed — action=\(userInfo["jsx_action"] ?? "nil")")
             completionHandler(.noData)
             return
@@ -122,20 +143,20 @@ import UserNotifications
 
         let flightId = userInfo["flight_id"] as? String ?? ""
         let args: [String: Any] = [
-            "flightId":         flightId,
-            "origin":           userInfo["origin"]           as? String ?? "",
-            "originCity":       userInfo["origin_city"]      as? String ?? "",
-            "destination":      userInfo["destination"]      as? String ?? "",
-            "destinationCity":  userInfo["destination_city"] as? String ?? "",
-            "departureTime":    Self.fmtLocalTime(userInfo["departure_time"] as? String),
-            "arrivalTime":      Self.fmtLocalTime(userInfo["arrival_time"]   as? String),
+            "flightId": flightId,
+            "origin": userInfo["origin"] as? String ?? "",
+            "originCity": userInfo["origin_city"] as? String ?? "",
+            "destination": userInfo["destination"] as? String ?? "",
+            "destinationCity": userInfo["destination_city"] as? String ?? "",
+            "departureTime": Self.fmtLocalTime(userInfo["departure_time"] as? String),
+            "arrivalTime": Self.fmtLocalTime(userInfo["arrival_time"] as? String),
             "confirmationCode": userInfo["confirmation_code"] as? String ?? "",
-            "status":           userInfo["status"]           as? String ?? "On Time",
-            "phase":            userInfo["phase"]            as? String ?? "boarding",
-            "progress":         userInfo["progress"]         as? Double ?? 0,
+            "status": userInfo["status"] as? String ?? "On Time",
+            "phase": userInfo["phase"] as? String ?? "boarding",
+            "progress": userInfo["progress"] as? Double ?? 0,
             "minutesRemaining": userInfo["minutes_remaining"] as? Int ?? 0,
-            "altitudeFt":       userInfo["altitude_ft"]      as? Int ?? 0,
-            "speedMph":         userInfo["speed_mph"]        as? Int ?? 0,
+            "altitudeFt": userInfo["altitude_ft"] as? Int ?? 0,
+            "speedMph": userInfo["speed_mph"] as? Int ?? 0,
         ]
 
         do {
@@ -146,7 +167,8 @@ import UserNotifications
             print("[LA] auto-start failed: \(error)")
             completionHandler(.failed)
         }
-        super.application(application, didReceiveRemoteNotification: userInfo, fetchCompletionHandler: { _ in })
+        super.application(
+            application, didReceiveRemoteNotification: userInfo, fetchCompletionHandler: { _ in })
     }
 
     private static func fmtLocalTime(_ iso: String?) -> String {
@@ -154,7 +176,7 @@ import UserNotifications
         let fmt = DateFormatter()
         fmt.dateFormat = "h:mm a"
         fmt.locale = Locale(identifier: "en_US")
-        return fmt.string(from: date) // uses device local timezone by default
+        return fmt.string(from: date)  // uses device local timezone by default
     }
 
     // Handle Spotlight search result taps
@@ -164,13 +186,15 @@ import UserNotifications
         restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
     ) -> Bool {
         if userActivity.activityType == CSSearchableItemActionType,
-           let identifier = userActivity.userInfo?[CSSearchableItemActivityIdentifier] as? String {
+            let identifier = userActivity.userInfo?[CSSearchableItemActivityIdentifier] as? String
+        {
             let code = identifier.replacingOccurrences(of: "jsx.booking.", with: "")
             UserDefaults(suiteName: "group.jsx.jsxAppCopy")?
                 .set("booking/\(code)", forKey: "jsx_pending_route")
         }
-        return super.application(application,
-                                 continue: userActivity,
-                                 restorationHandler: restorationHandler)
+        return super.application(
+            application,
+            continue: userActivity,
+            restorationHandler: restorationHandler)
     }
 }

@@ -1,15 +1,9 @@
 /**
  * Supabase Edge Function: trigger-live-activity
  *
- * Finds bookings departing within the next 2 hours and sends a silent APNs
- * push to the user's device, which wakes the app in the background and
- * starts a Live Activity automatically.
- *
- * Call with POST (no body required) — intended to be triggered by a cron job
- * every 15 minutes, or manually for testing.
- *
- * Silent push payload includes all data needed to call Activity.request()
- * without the app needing to fetch anything from the network.
+ * Finds bookings departing within the next 2 hours and sends an APNs
+ * push-to-start Live Activity push directly to ActivityKit (iOS 17.2+).
+ * iOS starts the Live Activity without the app needing to be in the foreground.
  */
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
@@ -19,6 +13,7 @@ const APNS_HOST = Deno.env.get('APNS_ENV') === 'production'
   ? 'https://api.push.apple.com'
   : 'https://api.sandbox.push.apple.com'
 
+const BUNDLE_ID = Deno.env.get('APNS_BUNDLE_ID')!
 
 async function buildJwt() {
   const key = await importPKCS8(Deno.env.get('APNS_PRIVATE_KEY')!, 'ES256')
@@ -29,20 +24,28 @@ async function buildJwt() {
     .sign(key)
 }
 
-async function sendSilentPush(deviceToken: string, payload: object, jwt: string) {
-  const bundleId = Deno.env.get('APNS_BUNDLE_ID')!
-  const res = await fetch(`${APNS_HOST}/3/device/${deviceToken}`, {
+async function sendStartPush(startToken: string, payload: object, jwt: string) {
+  const res = await fetch(`${APNS_HOST}/3/device/${startToken}`, {
     method: 'POST',
     headers: {
       authorization: `bearer ${jwt}`,
-      'apns-push-type': 'background',
-      'apns-topic': bundleId,
-      'apns-priority': '5', // 5 = normal priority for background pushes
+      'apns-push-type': 'liveactivity',
+      'apns-topic': `${BUNDLE_ID}.push-type.liveactivity`,
+      'apns-priority': '10',
       'content-type': 'application/json',
     },
     body: JSON.stringify(payload),
   })
   return { status: res.status, body: await res.text() }
+}
+
+function fmtTime(iso: string): string {
+  const d = new Date(iso)
+  const h = d.getUTCHours()
+  const m = d.getUTCMinutes().toString().padStart(2, '0')
+  const period = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${hour}:${m} ${period}`
 }
 
 Deno.serve(async () => {
@@ -87,15 +90,15 @@ Deno.serve(async () => {
       const origin = fs.airports
       const dest = fs.dest
 
-      // Get device token for this user
+      // Fetch push-to-start token for this user
       const { data: dt } = await supabase
         .from('device_tokens')
-        .select('token')
+        .select('la_start_token')
         .eq('user_id', booking.user_id)
         .single()
 
-      if (!dt) {
-        results.push({ flight: fs.id, error: 'no device token' })
+      if (!dt?.la_start_token) {
+        results.push({ flight: fs.id, error: 'no la_start_token — device not on iOS 17.2+' })
         continue
       }
 
@@ -104,25 +107,36 @@ Deno.serve(async () => {
       )
 
       const payload = {
-        aps: { 'content-available': 1 },
-        jsx_action: 'start_live_activity',
-        flight_id: fs.id,
-        origin: origin.code,
-        origin_city: origin.city,
-        destination: dest.code,
-        destination_city: dest.city,
-        departure_time: booking.departure_time,
-        arrival_time: booking.arrival_time,
-        confirmation_code: booking.confirmation_code,
-        status: fs.status === 'on_time' ? 'On Time' : fs.status === 'delayed' ? 'Delayed' : 'Boarding',
-        phase: 'boarding',
-        progress: 0,
-        minutes_remaining: minutesRemaining,
-        altitude_ft: 0,
-        speed_mph: 0,
+        aps: {
+          timestamp: Math.floor(Date.now() / 1000),
+          event: 'start',
+          'attributes-type': 'JSXFlightAttributes',
+          attributes: {
+            flightId:         fs.id,
+            origin:           origin.code,
+            originCity:       origin.city,
+            destination:      dest.code,
+            destinationCity:  dest.city,
+            departureTime:    fmtTime(booking.departure_time),
+            arrivalTime:      fmtTime(booking.arrival_time),
+            confirmationCode: booking.confirmation_code,
+          },
+          'content-state': {
+            status:           fs.status === 'delayed' ? 'Delayed' : fs.status === 'boarding' ? 'Boarding' : 'On Time',
+            phase:            'boarding',
+            progress:         0,
+            minutesRemaining: minutesRemaining,
+            altitudeFt:       0,
+            speedMph:         0,
+          },
+          alert: {
+            title: `${origin.code} → ${dest.code}`,
+            body:  `${fs.id} added to Live Activities`,
+          },
+        },
       }
 
-      const result = await sendSilentPush(dt.token, payload, jwt)
+      const result = await sendStartPush(dt.la_start_token, payload, jwt)
       results.push({ flight: fs.id, apns_status: result.status, apns_body: result.body })
     }
 
