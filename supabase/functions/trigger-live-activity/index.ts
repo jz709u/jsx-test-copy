@@ -1,9 +1,9 @@
 /**
  * Supabase Edge Function: trigger-live-activity
  *
- * Finds bookings departing within the next 2 hours and sends an APNs
- * push-to-start Live Activity push directly to ActivityKit (iOS 17.2+).
- * iOS starts the Live Activity without the app needing to be in the foreground.
+ * Finds bookings departing within the next 2 hours.
+ * - If no Live Activity exists for the flight: sends push-to-start (iOS 17.2+)
+ * - If one already exists: sends an update push to avoid duplicate widgets
  */
 
 import { createClient } from 'jsr:@supabase/supabase-js@2'
@@ -24,14 +24,14 @@ async function buildJwt() {
     .sign(key)
 }
 
-async function sendStartPush(startToken: string, payload: object, jwt: string) {
-  const res = await fetch(`${APNS_HOST}/3/device/${startToken}`, {
+async function sendPush(token: string, payload: object, jwt: string, isUpdate: boolean) {
+  const res = await fetch(`${APNS_HOST}/3/device/${token}`, {
     method: 'POST',
     headers: {
       authorization: `bearer ${jwt}`,
       'apns-push-type': 'liveactivity',
       'apns-topic': `${BUNDLE_ID}.push-type.liveactivity`,
-      'apns-priority': '10',
+      'apns-priority': isUpdate ? '5' : '10',
       'content-type': 'application/json',
     },
     body: JSON.stringify(payload),
@@ -70,8 +70,8 @@ Deno.serve(async () => {
           dest:airports!dest_code ( code, city )
         )
       `)
-      .gte('departure_time', new Date(Date.now() + 90 * 60 * 1000).toISOString())
-      .lte('departure_time', new Date(Date.now() + 150 * 60 * 1000).toISOString())
+      .gte('departure_time', new Date(Date.now() + 10 * 60 * 1000).toISOString())
+      .lte('departure_time', new Date(Date.now() + 180 * 60 * 1000).toISOString())
       .eq('status', 'confirmed')
 
     if (error) {
@@ -90,7 +90,41 @@ Deno.serve(async () => {
       const origin = fs.airports
       const dest = fs.dest
 
-      // Fetch push-to-start token for this user
+      const minutesRemaining = Math.round(
+        (new Date(booking.departure_time).getTime() - Date.now()) / 60000,
+      )
+
+      const contentState = {
+        status:           fs.status === 'delayed' ? 'Delayed' : fs.status === 'boarding' ? 'Boarding' : 'On Time',
+        phase:            'boarding',
+        progress:         0,
+        minutesRemaining: minutesRemaining,
+        altitudeFt:       0,
+        speedMph:         0,
+      }
+
+      // Check if a Live Activity already exists for this flight
+      const { data: la } = await supabase
+        .from('live_activities')
+        .select('push_token')
+        .eq('flight_id', fs.id)
+        .single()
+
+      if (la?.push_token) {
+        // Activity already running — send update to avoid duplicate widget
+        const payload = {
+          aps: {
+            timestamp: Math.floor(Date.now() / 1000),
+            event: 'update',
+            'content-state': contentState,
+          },
+        }
+        const result = await sendPush(la.push_token, payload, jwt, true)
+        results.push({ flight: fs.id, action: 'update', apns_status: result.status, apns_body: result.body })
+        continue
+      }
+
+      // No active Live Activity — start one
       const { data: dt } = await supabase
         .from('device_tokens')
         .select('la_start_token')
@@ -101,10 +135,6 @@ Deno.serve(async () => {
         results.push({ flight: fs.id, error: 'no la_start_token — device not on iOS 17.2+' })
         continue
       }
-
-      const minutesRemaining = Math.round(
-        (new Date(booking.departure_time).getTime() - Date.now()) / 60000,
-      )
 
       const payload = {
         aps: {
@@ -121,14 +151,7 @@ Deno.serve(async () => {
             arrivalTime:      fmtTime(booking.arrival_time),
             confirmationCode: booking.confirmation_code,
           },
-          'content-state': {
-            status:           fs.status === 'delayed' ? 'Delayed' : fs.status === 'boarding' ? 'Boarding' : 'On Time',
-            phase:            'boarding',
-            progress:         0,
-            minutesRemaining: minutesRemaining,
-            altitudeFt:       0,
-            speedMph:         0,
-          },
+          'content-state': contentState,
           alert: {
             title: `${origin.code} → ${dest.code}`,
             body:  `${fs.id} added to Live Activities`,
@@ -136,8 +159,8 @@ Deno.serve(async () => {
         },
       }
 
-      const result = await sendStartPush(dt.la_start_token, payload, jwt)
-      results.push({ flight: fs.id, apns_status: result.status, apns_body: result.body })
+      const result = await sendPush(dt.la_start_token, payload, jwt, false)
+      results.push({ flight: fs.id, action: 'start', apns_status: result.status, apns_body: result.body })
     }
 
     return new Response(JSON.stringify({ ok: true, triggered: results.length, results }), {
