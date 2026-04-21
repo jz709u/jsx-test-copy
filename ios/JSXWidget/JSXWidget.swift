@@ -49,7 +49,7 @@ struct FlightEntry: TimelineEntry {
 // MARK: - Timeline Provider
 
 struct FlightProvider: TimelineProvider {
-    private let appGroup = "group.com.jsx.jsxappcopy"
+    private let appGroup = "group.jsx.jsxAppCopy"
 
     func placeholder(in context: Context) -> FlightEntry {
         .placeholder

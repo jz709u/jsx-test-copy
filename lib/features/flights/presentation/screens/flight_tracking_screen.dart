@@ -23,13 +23,14 @@ class _FlightTrackingScreenState extends ConsumerState<FlightTrackingScreen> {
 
   @override
   void dispose() {
-    if (_liveActivityActive) LiveActivityService.end();
+    // Don't end the Live Activity on navigation — let it persist on lock screen
+    // until the user explicitly stops it or the flight ends.
     super.dispose();
   }
 
   Future<void> _toggleLiveActivity() async {
     if (_liveActivityActive) {
-      await LiveActivityService.end();
+      await LiveActivityService.end(widget.flight.id);
       if (mounted) setState(() => _liveActivityActive = false);
     } else {
       final track = _lastTrack;

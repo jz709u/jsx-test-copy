@@ -8,7 +8,7 @@ struct NextFlightIntent: AppIntent {
     static var openAppWhenRun: Bool = false
 
     func perform() async throws -> some ReturnsValue<String> & ProvidesDialog {
-        let d = UserDefaults(suiteName: "group.com.jsx.jsxappcopy")
+        let d = UserDefaults(suiteName: "group.jsx.jsxAppCopy")
         guard d?.bool(forKey: "jsx_has_flight") == true else {
             return .result(
                 value: "No upcoming flights",

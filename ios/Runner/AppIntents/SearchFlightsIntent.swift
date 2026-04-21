@@ -17,7 +17,7 @@ struct SearchFlightsIntent: AppIntent {
         if let f = from, let t = to {
             route = "search?from=\(f.uppercased())&to=\(t.uppercased())"
         }
-        UserDefaults(suiteName: "group.com.jsx.jsxappcopy")?
+        UserDefaults(suiteName: "group.jsx.jsxAppCopy")?
             .set(route, forKey: "jsx_pending_route")
         return .result()
     }

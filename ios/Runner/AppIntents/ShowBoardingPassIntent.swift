@@ -7,7 +7,7 @@ struct ShowBoardingPassIntent: AppIntent {
     static var openAppWhenRun: Bool = true
 
     func perform() async throws -> some IntentResult {
-        UserDefaults(suiteName: "group.com.jsx.jsxappcopy")?
+        UserDefaults(suiteName: "group.jsx.jsxAppCopy")?
             .set("boarding-pass", forKey: "jsx_pending_route")
         return .result()
     }

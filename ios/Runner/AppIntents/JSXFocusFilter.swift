@@ -17,7 +17,7 @@ struct JSXFocusFilter: SetFocusFilterIntent {
     var showOnlyFlight: Bool?
 
     func perform() async throws -> some IntentResult {
-        UserDefaults(suiteName: "group.com.jsx.jsxappcopy")?
+        UserDefaults(suiteName: "group.jsx.jsxAppCopy")?
             .set(showOnlyFlight ?? false, forKey: "jsx_focus_flight_only")
         return .result()
     }

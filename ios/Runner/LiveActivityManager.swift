@@ -7,10 +7,15 @@ final class LiveActivityManager {
     private init() {}
 
     private var activity: Activity<JSXFlightAttributes>?
+    private(set) var latestPushToken: String?
 
     func start(_ args: [String: Any]) throws {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
             throw LAError.notEnabled
+        }
+        guard activity == nil else {
+            print("[LA] activity already running, skipping start")
+            return
         }
 
         let attrs = JSXFlightAttributes(
@@ -23,30 +28,26 @@ final class LiveActivityManager {
             arrivalTime:      args["arrivalTime"]      as? String ?? "",
             confirmationCode: args["confirmationCode"] as? String ?? ""
         )
-
-        let state = JSXFlightAttributes.ContentState(
-            status:           args["status"]           as? String ?? "On Time",
-            phase:            args["phase"]            as? String ?? "cruising",
-            progress:         args["progress"]         as? Double ?? 0,
-            minutesRemaining: args["minutesRemaining"] as? Int    ?? 0,
-            altitudeFt:       args["altitudeFt"]       as? Int    ?? 0,
-            speedMph:         args["speedMph"]         as? Int    ?? 0
-        )
-
+        let state = contentState(from: args)
         let content = ActivityContent(state: state, staleDate: nil)
-        activity = try Activity.request(attributes: attrs, content: content)
+        activity = try Activity.request(attributes: attrs, content: content, pushType: .token)
+        print("[LA] activity started, id=\(activity?.id ?? "nil"), waiting for push token...")
+
+        Task { [weak self] in
+            guard let activity = self?.activity else { return }
+            for await tokenData in activity.pushTokenUpdates {
+                let hex = tokenData.map { String(format: "%02x", $0) }.joined()
+                print("[LA] push token received: \(hex.prefix(16))...")
+                self?.latestPushToken = hex
+                UserDefaults(suiteName: "group.jsx.jsxAppCopy")?
+                    .set(hex, forKey: "jsx_la_push_token")
+            }
+        }
     }
 
     func update(_ args: [String: Any]) {
         guard let activity else { return }
-        let state = JSXFlightAttributes.ContentState(
-            status:           args["status"]           as? String ?? "On Time",
-            phase:            args["phase"]            as? String ?? "cruising",
-            progress:         args["progress"]         as? Double ?? 0,
-            minutesRemaining: args["minutesRemaining"] as? Int    ?? 0,
-            altitudeFt:       args["altitudeFt"]       as? Int    ?? 0,
-            speedMph:         args["speedMph"]         as? Int    ?? 0
-        )
+        let state = contentState(from: args)
         Task { await activity.update(ActivityContent(state: state, staleDate: nil)) }
     }
 
@@ -54,6 +55,20 @@ final class LiveActivityManager {
         guard let activity else { return }
         Task { await activity.end(nil, dismissalPolicy: .immediate) }
         self.activity = nil
+        latestPushToken = nil
+        UserDefaults(suiteName: "group.jsx.jsxAppCopy")?
+            .removeObject(forKey: "jsx_la_push_token")
+    }
+
+    private func contentState(from args: [String: Any]) -> JSXFlightAttributes.ContentState {
+        JSXFlightAttributes.ContentState(
+            status:           args["status"]           as? String ?? "On Time",
+            phase:            args["phase"]            as? String ?? "cruising",
+            progress:         args["progress"]         as? Double ?? 0,
+            minutesRemaining: args["minutesRemaining"] as? Int    ?? 0,
+            altitudeFt:       args["altitudeFt"]       as? Int    ?? 0,
+            speedMph:         args["speedMph"]         as? Int    ?? 0
+        )
     }
 
     enum LAError: Error { case notEnabled }
