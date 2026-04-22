@@ -14,13 +14,8 @@ struct RelativeTimeText: View {
     let date: Date
     var font: Font = .system(size: 11, weight: .semibold)
 
-    private var minuteAlignedDate: Date {
-        let t = date.timeIntervalSinceReferenceDate
-        return Date(timeIntervalSinceReferenceDate: ceil(t / 60) * 60)
-    }
-
     var body: some View {
-        Text(minuteAlignedDate, style: .relative)
+        Text(date, style: .relative)
             .font(font)
     }
 }

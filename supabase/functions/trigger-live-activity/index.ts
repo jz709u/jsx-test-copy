@@ -39,6 +39,12 @@ async function sendPush(token: string, payload: object, jwt: string, isUpdate: b
   return { status: res.status, body: await res.text() }
 }
 
+// Swift's Codable decodes Date as seconds since Jan 1 2001, not Unix epoch.
+const swiftEpochOffset = 978307200
+function toSwiftDate(iso: string): number {
+  return Math.floor(new Date(iso).getTime() / 1000) - swiftEpochOffset
+}
+
 function fmtTime(iso: string): string {
   const d = new Date(iso)
   const h = d.getUTCHours()
@@ -94,8 +100,8 @@ Deno.serve(async () => {
         status:        fs.status === 'delayed' ? 'Delayed' : fs.status === 'boarding' ? 'Boarding' : 'On Time',
         phase:         'pre_departure',
         progress:      0,
-        departureTime: Math.floor(new Date(booking.departure_time).getTime() / 1000),
-        arrivalTime:   Math.floor(new Date(booking.arrival_time).getTime() / 1000),
+        departureTime: toSwiftDate(booking.departure_time),
+        arrivalTime:   toSwiftDate(booking.arrival_time),
         gate:          booking.gate ?? '',
         boardingTime:  fmtTime(booking.departure_time),
         altitudeFt:    0,

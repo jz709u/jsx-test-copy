@@ -12,6 +12,10 @@
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		560E88542F97042E00E4A455 /* SupabaseUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560E88532F97042E00E4A455 /* SupabaseUploader.swift */; };
+		562034B32F9859AA005F3854 /* UserDefaults+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562034B22F98599D005F3854 /* UserDefaults+Extensions.swift */; };
+		562034B52F985B90005F3854 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562034B42F985B8B005F3854 /* Constants.swift */; };
+		562034B72F985C36005F3854 /* ChannelManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562034B62F985C32005F3854 /* ChannelManager.swift */; };
+		562034B92F9945F5005F3854 /* Data+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562034B82F9945EF005F3854 /* Data+Extensions.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
@@ -83,6 +87,10 @@
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
 		560E88522F96C45600E4A455 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
 		560E88532F97042E00E4A455 /* SupabaseUploader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseUploader.swift; sourceTree = "<group>"; };
+		562034B22F98599D005F3854 /* UserDefaults+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UserDefaults+Extensions.swift"; sourceTree = "<group>"; };
+		562034B42F985B8B005F3854 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		562034B62F985C32005F3854 /* ChannelManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChannelManager.swift; sourceTree = "<group>"; };
+		562034B82F9945EF005F3854 /* Data+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+Extensions.swift"; sourceTree = "<group>"; };
 		59C50171E34A8C4390D093C9 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -210,6 +218,10 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				562034B82F9945EF005F3854 /* Data+Extensions.swift */,
+				562034B62F985C32005F3854 /* ChannelManager.swift */,
+				562034B42F985B8B005F3854 /* Constants.swift */,
+				562034B22F98599D005F3854 /* UserDefaults+Extensions.swift */,
 				560E88532F97042E00E4A455 /* SupabaseUploader.swift */,
 				560E88522F96C45600E4A455 /* Runner.entitlements */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
@@ -470,9 +482,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -499,11 +515,15 @@
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				AA0200000000001A /* JSXFlightAttributes.swift in Sources */,
 				AA0200000000001B /* LiveActivityManager.swift in Sources */,
+				562034B72F985C36005F3854 /* ChannelManager.swift in Sources */,
 				AA020000000000B1 /* NextFlightIntent.swift in Sources */,
 				AA020000000000B2 /* ShowBoardingPassIntent.swift in Sources */,
+				562034B52F985B90005F3854 /* Constants.swift in Sources */,
 				AA020000000000B3 /* SearchFlightsIntent.swift in Sources */,
+				562034B92F9945F5005F3854 /* Data+Extensions.swift in Sources */,
 				AA020000000000B4 /* JSXAppShortcuts.swift in Sources */,
 				AA020000000000B5 /* JSXFocusFilter.swift in Sources */,
+				562034B32F9859AA005F3854 /* UserDefaults+Extensions.swift in Sources */,
 				AA020000000000B6 /* SpotlightIndexer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

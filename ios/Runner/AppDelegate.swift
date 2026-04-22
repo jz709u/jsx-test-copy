@@ -14,6 +14,7 @@ class LiveActivityListener {
     
     var liveActivityManager: LiveActivityManager = .shared
     var userNotificationCenter: UNUserNotificationCenter = .current()
+    var userDefaults: UserDefaults = .jsxAppGroup
 
     override func application(
         _ application: UIApplication,
@@ -22,16 +23,15 @@ class LiveActivityListener {
         GeneratedPluginRegistrant.register(with: self)
 
         // Register for remote push notifications
-        userNotificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) {
-            granted, _ in
-            if granted {
-                DispatchQueue.main.async { UIApplication.shared.registerForRemoteNotifications() }
-            }
+        Task {
+            let granted = try await userNotificationCenter.requestAuthorization(options: [.alert, .sound, .badge])
+            guard granted else { return }
+            await MainActor.run { UIApplication.shared.registerForRemoteNotifications() }
         }
         
         // Receive the push-to-start token so the server can start Live Activities
         // without requiring the app to be in the foreground (iOS 17.2+)
-        liveActivityManager.startListeners()
+        Task { await liveActivityManager.startListeners() }
         
         let controller = window?.rootViewController as! FlutterViewController
 

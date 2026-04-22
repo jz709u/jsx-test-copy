@@ -2,12 +2,47 @@ import ActivityKit
 import Foundation
 
 @available(iOS 16.2, *)
-final class LiveActivityManager {
+actor LiveActivityManager {
     static let shared = LiveActivityManager()
-    private init() {}
-
+    
     private var activity: Activity<JSXFlightAttributes>?
     private(set) var latestPushToken: String?
+    private var startTokenUpdatesTask: Task<Void, Never>? {
+        willSet { startTokenUpdatesTask?.cancel() }
+    }
+    private var activityUpdatesTask: Task<Void, Never>? {
+        willSet { activityUpdatesTask?.cancel() }
+    }
+    
+    private let uploader: SupabaseUploader
+    private let userDefaults: UserDefaults
+    
+    private init(uploader: SupabaseUploader = .init(),
+                 userDefaults: UserDefaults = .jsxAppGroup) {
+        self.uploader = uploader
+        self.userDefaults = userDefaults
+    }
+    
+    func startListeners() {
+        
+        // Starting Live Activity From a Push Notification
+        startTokenUpdatesTask = Task { [uploader] in
+            for await tokenData in Activity<JSXFlightAttributes>.pushToStartTokenUpdates {
+                guard !Task.isCancelled else { break }
+                let hex = tokenData.asHex()
+                print("[LA] push-to-start token: \(hex.prefix(16))...")
+                await uploader.upsertLAStartToken(hex)
+            }
+        }
+        
+        // Getting Live Activity Updates
+        activityUpdatesTask = Task {
+            for await activity in Activity<JSXFlightAttributes>.activityUpdates {
+                guard !Task.isCancelled else { break }
+                adoptIfNeeded(activity)
+            }
+        }
+    }
 
     func start(_ args: [String: Any]) throws {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
@@ -29,17 +64,18 @@ final class LiveActivityManager {
         )
         let state = contentState(from: args)
         let content = ActivityContent(state: state, staleDate: nil)
-        activity = try Activity.request(attributes: attrs, content: content, pushType: .token)
-        print("[LA] activity started, id=\(activity?.id ?? "nil"), waiting for push token...")
+        let _activity = try Activity.request(attributes: attrs,
+                                             content: content,
+                                             pushType: .token)
+        activity = _activity
+        print("[LA] activity started, id=\(_activity.id), waiting for push token...")
 
         Task { [weak self] in
-            guard let activity = self?.activity else { return }
+            guard let activity = await self?.activity else { return }
             for await tokenData in activity.pushTokenUpdates {
-                let hex = tokenData.map { String(format: "%02x", $0) }.joined()
+                let hex = tokenData.asHex()
                 print("[LA] push token received: \(hex.prefix(16))...")
-                self?.latestPushToken = hex
-                UserDefaults(suiteName: "group.jsx.jsxAppCopy")?
-                    .set(hex, forKey: "jsx_la_push_token")
+                await self?.setLatestToken(hex)
             }
         }
 
@@ -57,8 +93,7 @@ final class LiveActivityManager {
         Task { await activity.end(nil, dismissalPolicy: .immediate) }
         self.activity = nil
         latestPushToken = nil
-        UserDefaults(suiteName: "group.jsx.jsxAppCopy")?
-            .removeObject(forKey: "jsx_la_push_token")
+        userDefaults.removeObject(forKey: "jsx_la_push_token")
     }
 
     private func contentState(from args: [String: Any]) -> JSXFlightAttributes.ContentState {
@@ -83,17 +118,17 @@ final class LiveActivityManager {
 
     /// Called when iOS starts a Live Activity via push-to-start.
     /// Stores it and begins listening for its update push token.
-    func adoptIfNeeded(_ activity: Activity<JSXFlightAttributes>) {
+    private func adoptIfNeeded(_ activity: Activity<JSXFlightAttributes>) {
         guard self.activity == nil else { return }
         self.activity = activity
         print("[LA] adopted push-started activity id=\(activity.id) flightId=\(activity.attributes.flightId)")
         Task { [weak self] in
             for await tokenData in activity.pushTokenUpdates {
-                let hex = tokenData.map { String(format: "%02x", $0) }.joined()
+                guard !Task.isCancelled else { break }
+                let hex = tokenData.asHex()
                 print("[LA] update token for push-started activity: \(hex.prefix(16))...")
-                self?.latestPushToken = hex
-                UserDefaults(suiteName: "group.jsx.jsxAppCopy")?.set(hex, forKey: "jsx_la_push_token")
-                SupabaseUploader.uploadUpdateToken(flightId: activity.attributes.flightId, pushToken: hex)
+                await self?.setLatestToken(hex)
+                await self?.uploader.uploadUpdateToken(flightId: activity.attributes.flightId, pushToken: hex)
             }
         }
 
@@ -105,14 +140,18 @@ final class LiveActivityManager {
             for await state in activity.activityStateUpdates {
                 guard state == .dismissed else { continue }
                 print("[LA] activity dismissed by user, cleaning up flightId=\(flightId)")
-                self?.activity = nil
-                self?.latestPushToken = nil
-                UserDefaults(suiteName: "group.jsx.jsxAppCopy")?.removeObject(forKey: "jsx_la_push_token")
-                SupabaseUploader.deleteUpdateToken(flightId: flightId)
+                await self?.activity = nil
+                await self?.setLatestToken(nil)
+                await self?.uploader.deleteUpdateToken(flightId: flightId)
                 return
             }
         }
     }
+    private func setLatestToken(_ token: String?) {
+        self.latestPushToken = token
+        self.userDefaults.set(token, forKey: "jsx_la_push_token")
+    }
+    
 
     enum LAError: Error { case notEnabled }
 }
