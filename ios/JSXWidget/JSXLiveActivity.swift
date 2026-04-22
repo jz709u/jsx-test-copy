@@ -7,31 +7,21 @@ import WidgetKit
 private let gold = Color(red: 0.91, green: 0.72, blue: 0.29)
 private let bg   = Color(red: 0.05, green: 0.055, blue: 0.078)
 
-/// Displays a date as a relative countdown (e.g. "1 hr, 23 min") without seconds.
-/// Updates every 60 seconds via TimelineView.
+/// Displays a live-updating relative countdown without seconds.
+/// Rounds the target date up to the next minute so Text(style: .relative)
+/// never has a seconds component to display.
 struct RelativeTimeText: View {
     let date: Date
     var font: Font = .system(size: 11, weight: .semibold)
 
-    private static let formatter: DateComponentsFormatter = {
-        let f = DateComponentsFormatter()
-        f.allowedUnits = [.hour, .minute]
-        f.unitsStyle = .abbreviated
-        f.maximumUnitCount = 2
-        return f
-    }()
-
-    var body: some View {
-        TimelineView(.periodic(from: .now, by: 60)) { _ in
-            Text(Self.formatted(date))
-                .font(font)
-        }
+    private var minuteAlignedDate: Date {
+        let t = date.timeIntervalSinceReferenceDate
+        return Date(timeIntervalSinceReferenceDate: ceil(t / 60) * 60)
     }
 
-    private static func formatted(_ date: Date) -> String {
-        let now = Date()
-        guard date > now else { return "Now" }
-        return formatter.string(from: now, to: date) ?? ""
+    var body: some View {
+        Text(minuteAlignedDate, style: .relative)
+            .font(font)
     }
 }
 
@@ -129,6 +119,8 @@ struct LALockScreenView: View {
                 Label("Seat \(attrs.seat)", systemImage: "carseat.left")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
                 Spacer()
+                Text("Departing in ")
+                    .font(.system(size: 11, weight: .semibold))
                 RelativeTimeText(date: state.departureTime)
             }
         case "en_route", "landing":
@@ -136,6 +128,8 @@ struct LALockScreenView: View {
                 Label("\(state.altitudeFt / 1000)k ft", systemImage: "arrow.up")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
                 Spacer()
+                Text("Arriving in ")
+                    .font(.system(size: 11, weight: .semibold))
                 RelativeTimeText(date: state.arrivalTime)
                 Spacer()
                 Label("\(state.speedMph) mph", systemImage: "speedometer")
