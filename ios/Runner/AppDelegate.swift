@@ -4,10 +4,17 @@ import Flutter
 import UIKit
 import UserNotifications
 
+class LiveActivityListener {
+    
+}
 @main
 @objc class AppDelegate: FlutterAppDelegate {
 
     private var navigationChannel: FlutterMethodChannel?
+    
+    var uploader: SupabaseUploader = .init()
+    var liveActivityManager: LiveActivityManager = .shared
+    var userNotificationCenter: UNUserNotificationCenter = .current()
 
     override func application(
         _ application: UIApplication,
@@ -16,7 +23,7 @@ import UserNotifications
         GeneratedPluginRegistrant.register(with: self)
 
         // Register for remote push notifications
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) {
+        userNotificationCenter.requestAuthorization(options: [.alert, .sound, .badge]) {
             granted, _ in
             if granted {
                 DispatchQueue.main.async { UIApplication.shared.registerForRemoteNotifications() }
@@ -25,18 +32,7 @@ import UserNotifications
         
         // Receive the push-to-start token so the server can start Live Activities
         // without requiring the app to be in the foreground (iOS 17.2+)
-        Task {
-            for await tokenData in Activity<JSXFlightAttributes>.pushToStartTokenUpdates {
-                let hex = tokenData.map { String(format: "%02x", $0) }.joined()
-                print("[LA] push-to-start token: \(hex.prefix(16))...")
-                SupabaseUploader.upsertLAStartToken(hex)
-            }
-        }
-        Task {
-            for await activity in Activity<JSXFlightAttributes>.activityUpdates {
-                LiveActivityManager.shared.adoptIfNeeded(activity)
-            }
-        }
+        liveActivityManager.startListeners()
         
         let controller = window?.rootViewController as! FlutterViewController
 
@@ -46,7 +42,7 @@ import UserNotifications
             name: "jsx.app/navigation",
             binaryMessenger: controller.binaryMessenger
         )
-        navigationChannel?.setMethodCallHandler { [weak self] call, result in
+        navigationChannel?.setMethodCallHandler { call, result in
             guard call.method == "getPendingRoute" else {
                 result(FlutterMethodNotImplemented)
                 return
@@ -121,17 +117,9 @@ import UserNotifications
         _ application: UIApplication,
         didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
     ) {
-        let hex = deviceToken.map { String(format: "%02x", $0) }.joined()
+        let hex = deviceToken.asHex()
         print("[Push] device token: \(hex.prefix(16))...")
-        SupabaseUploader.upsertDeviceToken(hex)
-    }
-
-    private static func fmtLocalTime(_ iso: String?) -> String {
-        guard let iso, let date = ISO8601DateFormatter().date(from: iso) else { return "" }
-        let fmt = DateFormatter()
-        fmt.dateFormat = "h:mm a"
-        fmt.locale = Locale(identifier: "en_US")
-        return fmt.string(from: date)  // uses device local timezone by default
+        Task { await uploader.upsertDeviceToken(hex) }
     }
 
     // Handle Spotlight search result taps
