@@ -8,11 +8,10 @@ struct JSXFlightAttributes: ActivityAttributes {
         var status: String        // "On Time" | "Delayed" | "Boarding" | "En Route" | "Landing" | "Landed"
         var phase: String         // "pre_departure" | "boarding" | "en_route" | "landing" | "landed"
         var progress: Double      // 0.0 – 1.0
-        var departureTime: String // can change if delayed
-        var arrivalTime: String   // can change if delayed
+        var departureTime: Date   // can change if delayed — used for relative countdown
+        var arrivalTime: Date     // can change if delayed — used for relative countdown
         var gate: String          // can change
         var boardingTime: String  // can change
-        var minutesRemaining: Int
         var altitudeFt: Int
         var speedMph: Int
     }

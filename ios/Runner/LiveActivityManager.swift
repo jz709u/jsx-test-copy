@@ -61,17 +61,22 @@ final class LiveActivityManager {
 
     private func contentState(from args: [String: Any]) -> JSXFlightAttributes.ContentState {
         JSXFlightAttributes.ContentState(
-            status:           args["status"]           as? String ?? "On Time",
-            phase:            args["phase"]            as? String ?? "pre_departure",
-            progress:         args["progress"]         as? Double ?? 0,
-            departureTime:    args["departureTime"]    as? String ?? "",
-            arrivalTime:      args["arrivalTime"]      as? String ?? "",
-            gate:             args["gate"]             as? String ?? "",
-            boardingTime:     args["boardingTime"]     as? String ?? "",
-            minutesRemaining: args["minutesRemaining"] as? Int    ?? 0,
-            altitudeFt:       args["altitudeFt"]       as? Int    ?? 0,
-            speedMph:         args["speedMph"]         as? Int    ?? 0
+            status:        args["status"]        as? String ?? "On Time",
+            phase:         args["phase"]         as? String ?? "pre_departure",
+            progress:      args["progress"]      as? Double ?? 0,
+            departureTime: date(from: args, key: "departureTime"),
+            arrivalTime:   date(from: args, key: "arrivalTime"),
+            gate:          args["gate"]          as? String ?? "",
+            boardingTime:  args["boardingTime"]  as? String ?? "",
+            altitudeFt:    args["altitudeFt"]    as? Int    ?? 0,
+            speedMph:      args["speedMph"]      as? Int    ?? 0
         )
+    }
+
+    private func date(from args: [String: Any], key: String) -> Date {
+        if let ts = args[key] as? Double { return Date(timeIntervalSince1970: ts) }
+        if let s = args[key] as? String, let d = ISO8601DateFormatter().date(from: s) { return d }
+        return Date()
     }
 
     /// Called when iOS starts a Live Activity via push-to-start.

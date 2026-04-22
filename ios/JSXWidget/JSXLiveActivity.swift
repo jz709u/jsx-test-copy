@@ -99,19 +99,17 @@ struct LALockScreenView: View {
                     .font(.system(size: 11, weight: .semibold))
                 Spacer()
                 Label("Seat \(attrs.seat)", systemImage: "carseat.left")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11)).foregroundStyle(.secondary)
                 Spacer()
-                Label("Boards \(state.boardingTime)", systemImage: "clock")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                Text(state.departureTime, style: .relative)
+                    .font(.system(size: 11, weight: .semibold))
             }
         case "en_route", "landing":
             HStack {
                 Label("\(state.altitudeFt / 1000)k ft", systemImage: "arrow.up")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
                 Spacer()
-                Text("\(state.minutesRemaining) min remaining")
+                Text(state.arrivalTime, style: .relative)
                     .font(.system(size: 11, weight: .semibold))
                 Spacer()
                 Label("\(state.speedMph) mph", systemImage: "speedometer")
@@ -121,8 +119,7 @@ struct LALockScreenView: View {
             HStack {
                 Spacer()
                 Label("Landed at \(attrs.destinationCity)", systemImage: "checkmark.circle.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.green)
+                    .font(.system(size: 12, weight: .semibold)).foregroundStyle(.green)
                 Spacer()
             }
         }
@@ -147,9 +144,10 @@ struct LACompactLeading: View {
 struct LACompactTrailing: View {
     let state: JSXFlightAttributes.ContentState
     var body: some View {
-        Text(state.minutesRemaining > 0 ? "\(state.minutesRemaining)m" : "Arr")
+        Text(state.arrivalTime, style: .relative)
             .font(.system(size: 12, weight: .semibold))
             .foregroundStyle(state.statusColor)
+            .lineLimit(1)
     }
 }
 
@@ -204,30 +202,27 @@ struct LAExpandedView: View {
             switch state.phase {
             case "pre_departure", "boarding":
                 HStack {
-                    Text("Gate \(state.gate)")
+                    Text("Gate \(state.gate)").font(.system(size: 11, weight: .semibold))
+                    Spacer()
+                    Text("Seat \(attrs.seat)").font(.system(size: 11)).foregroundStyle(.secondary)
+                    Spacer()
+                    Text(state.departureTime, style: .relative)
                         .font(.system(size: 11, weight: .semibold))
-                    Spacer()
-                    Text("Seat \(attrs.seat)")
-                        .font(.system(size: 11)).foregroundStyle(.secondary)
-                    Spacer()
-                    Text("Boards \(state.boardingTime)")
-                        .font(.system(size: 11)).foregroundStyle(.secondary)
                 }
             case "en_route", "landing":
                 HStack {
-                    Text(state.departureTime)
+                    Text(state.departureTime, style: .time)
                         .font(.system(size: 11)).foregroundStyle(.secondary)
                     Spacer()
-                    Text("\(state.minutesRemaining) min left")
+                    Text(state.arrivalTime, style: .relative)
                         .font(.system(size: 11, weight: .semibold))
                     Spacer()
-                    Text(state.arrivalTime)
+                    Text(state.arrivalTime, style: .time)
                         .font(.system(size: 11)).foregroundStyle(.secondary)
                 }
             default:
                 Label("Landed at \(attrs.destinationCity)", systemImage: "checkmark.circle.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.green)
+                    .font(.system(size: 12, weight: .semibold)).foregroundStyle(.green)
             }
         }
         .padding(.horizontal, 16)

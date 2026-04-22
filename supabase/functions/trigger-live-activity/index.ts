@@ -91,16 +91,15 @@ Deno.serve(async () => {
       const dest = fs.dest
 
       const contentState = {
-        status:           fs.status === 'delayed' ? 'Delayed' : fs.status === 'boarding' ? 'Boarding' : 'On Time',
-        phase:            'pre_departure',
-        progress:         0,
-        departureTime:    fmtTime(booking.departure_time),
-        arrivalTime:      fmtTime(booking.arrival_time),
-        gate:             booking.gate ?? '',
-        boardingTime:     fmtTime(booking.departure_time), // approximate: same as departure
-        minutesRemaining: minutesRemaining,
-        altitudeFt:       0,
-        speedMph:         0,
+        status:        fs.status === 'delayed' ? 'Delayed' : fs.status === 'boarding' ? 'Boarding' : 'On Time',
+        phase:         'pre_departure',
+        progress:      0,
+        departureTime: Math.floor(new Date(booking.departure_time).getTime() / 1000),
+        arrivalTime:   Math.floor(new Date(booking.arrival_time).getTime() / 1000),
+        gate:          booking.gate ?? '',
+        boardingTime:  fmtTime(booking.departure_time),
+        altitudeFt:    0,
+        speedMph:      0,
       }
 
       // Check if a Live Activity already exists for this flight
