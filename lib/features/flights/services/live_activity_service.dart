@@ -1,5 +1,4 @@
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/entities/flight.dart';
 import '../domain/entities/flight_track.dart';
@@ -8,17 +7,18 @@ import '../domain/entities/flight_track.dart';
 /// APNs push token to Supabase so the backend can send remote updates.
 class LiveActivityService {
   static const _channel = MethodChannel('jsx.app/live_activity');
-  static final _timeFmt = DateFormat('h:mm a');
 
   static Future<void> start({
     required Flight flight,
     required FlightTrack track,
     required String confirmationCode,
+    String seat = '',
+    String gate = '',
   }) async {
     try {
       print('[LA] starting live activity for ${flight.id}');
       await _channel.invokeMethod(
-          'start', _buildArgs(flight, track, confirmationCode));
+          'start', _buildArgs(flight, track, confirmationCode, seat: seat, gate: gate));
       print('[LA] start succeeded, polling for push token');
       _uploadPushToken(flight.id);
     } on PlatformException catch (e) {
@@ -30,10 +30,12 @@ class LiveActivityService {
     required Flight flight,
     required FlightTrack track,
     required String confirmationCode,
+    String seat = '',
+    String gate = '',
   }) async {
     try {
       await _channel.invokeMethod(
-          'update', _buildArgs(flight, track, confirmationCode));
+          'update', _buildArgs(flight, track, confirmationCode, seat: seat, gate: gate));
     } on PlatformException catch (e) {
       print('[LA] update failed: ${e.code} ${e.message}');
     }
@@ -41,7 +43,7 @@ class LiveActivityService {
 
   static Future<void> end(String flightId) async {
     try {
-      await _channel.invokeMethod('end');
+      await _channel.invokeMethod('end', {'flightId': flightId});
       print('[LA] ended live activity');
       await Supabase.instance.client
           .from('live_activities')
@@ -57,7 +59,8 @@ class LiveActivityService {
     for (var i = 0; i < 60 && token == null; i++) {
       await Future.delayed(const Duration(milliseconds: 500));
       try {
-        token = await _channel.invokeMethod<String>('getActivityPushToken');
+        token = await _channel.invokeMethod<String>(
+            'getActivityPushToken', {'flightId': flightId});
         print('[LA] poll $i: token=${token ?? "null"}');
       } on PlatformException catch (e) {
         print('[LA] poll $i getActivityPushToken error: ${e.code} ${e.message}');
@@ -79,24 +82,37 @@ class LiveActivityService {
     }
   }
 
+  static String _phaseString(FlightTrackPhase phase) {
+    switch (phase) {
+      case FlightTrackPhase.preDeparture: return 'pre_departure';
+      case FlightTrackPhase.climbing:     return 'en_route';
+      case FlightTrackPhase.cruising:     return 'en_route';
+      case FlightTrackPhase.descending:   return 'landing';
+      case FlightTrackPhase.landed:       return 'landed';
+    }
+  }
+
   static Map<String, dynamic> _buildArgs(
     Flight flight,
     FlightTrack track,
-    String confirmationCode,
-  ) =>
+    String confirmationCode, {
+    String seat = '',
+    String gate = '',
+  }) =>
       {
         'flightId': flight.id,
         'origin': flight.origin.code,
         'originCity': flight.origin.city,
         'destination': flight.destination.code,
         'destinationCity': flight.destination.city,
-        'departureTime': _timeFmt.format(flight.departureTime),
-        'arrivalTime': _timeFmt.format(flight.arrivalTime),
+        'departureTime': flight.departureTime.millisecondsSinceEpoch / 1000.0,
+        'arrivalTime': flight.arrivalTime.millisecondsSinceEpoch / 1000.0,
         'confirmationCode': confirmationCode,
+        'seat': seat,
+        'gate': gate,
         'status': flight.status.label,
-        'phase': track.phase.name,
+        'phase': _phaseString(track.phase),
         'progress': track.progress,
-        'minutesRemaining': track.minutesRemaining,
         'altitudeFt': track.altitudeFt.round(),
         'speedMph': track.speedMph.round(),
       };

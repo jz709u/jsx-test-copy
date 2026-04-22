@@ -4,9 +4,6 @@ import Flutter
 import UIKit
 import UserNotifications
 
-class LiveActivityListener {
-    
-}
 @main
 @objc class AppDelegate: FlutterAppDelegate {
 
@@ -81,24 +78,28 @@ class LiveActivityListener {
             let args = call.arguments as? [String: Any] ?? [:]
             switch call.method {
             case "start":
-                do {
-                    try LiveActivityManager.shared.start(args)
-                    result(nil)
-                } catch {
-                    result(
-                        FlutterError(
-                            code: "START_FAILED",
-                            message: error.localizedDescription,
-                            details: nil))
+                Task {
+                    do {
+                        try await LiveActivityManager.shared.start(args)
+                        result(nil)
+                    } catch {
+                        result(
+                            FlutterError(
+                                code: "START_FAILED",
+                                message: error.localizedDescription,
+                                details: nil))
+                    }
                 }
             case "update":
-                LiveActivityManager.shared.update(args)
+                Task { await LiveActivityManager.shared.update(args) }
                 result(nil)
             case "end":
-                LiveActivityManager.shared.end()
+                let flightId = args["flightId"] as? String ?? ""
+                Task { await LiveActivityManager.shared.end(flightId: flightId) }
                 result(nil)
             case "getActivityPushToken":
-                result(LiveActivityManager.shared.latestPushToken)
+                let flightId = args["flightId"] as? String ?? ""
+                Task { result(await LiveActivityManager.shared.pushToken(for: flightId)) }
             default:
                 result(FlutterMethodNotImplemented)
             }
