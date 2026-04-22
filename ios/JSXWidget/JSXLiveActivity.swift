@@ -7,6 +7,34 @@ import WidgetKit
 private let gold = Color(red: 0.91, green: 0.72, blue: 0.29)
 private let bg   = Color(red: 0.05, green: 0.055, blue: 0.078)
 
+/// Displays a date as a relative countdown (e.g. "1 hr, 23 min") without seconds.
+/// Updates every 60 seconds via TimelineView.
+struct RelativeTimeText: View {
+    let date: Date
+    var font: Font = .system(size: 11, weight: .semibold)
+
+    private static let formatter: DateComponentsFormatter = {
+        let f = DateComponentsFormatter()
+        f.allowedUnits = [.hour, .minute]
+        f.unitsStyle = .abbreviated
+        f.maximumUnitCount = 2
+        return f
+    }()
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 60)) { _ in
+            Text(Self.formatted(date))
+                .font(font)
+        }
+    }
+
+    private static func formatted(_ date: Date) -> String {
+        let now = Date()
+        guard date > now else { return "Now" }
+        return formatter.string(from: now, to: date) ?? ""
+    }
+}
+
 private extension JSXFlightAttributes.ContentState {
     var statusColor: Color {
         switch status {
@@ -101,16 +129,14 @@ struct LALockScreenView: View {
                 Label("Seat \(attrs.seat)", systemImage: "carseat.left")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
                 Spacer()
-                Text(state.departureTime, style: .relative)
-                    .font(.system(size: 11, weight: .semibold))
+                RelativeTimeText(date: state.departureTime)
             }
         case "en_route", "landing":
             HStack {
                 Label("\(state.altitudeFt / 1000)k ft", systemImage: "arrow.up")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
                 Spacer()
-                Text(state.arrivalTime, style: .relative)
-                    .font(.system(size: 11, weight: .semibold))
+                RelativeTimeText(date: state.arrivalTime)
                 Spacer()
                 Label("\(state.speedMph) mph", systemImage: "speedometer")
                     .font(.system(size: 11)).foregroundStyle(.secondary)
@@ -144,8 +170,7 @@ struct LACompactLeading: View {
 struct LACompactTrailing: View {
     let state: JSXFlightAttributes.ContentState
     var body: some View {
-        Text(state.arrivalTime, style: .relative)
-            .font(.system(size: 12, weight: .semibold))
+        RelativeTimeText(date: state.arrivalTime, font: .system(size: 12, weight: .semibold))
             .foregroundStyle(state.statusColor)
             .lineLimit(1)
     }
@@ -206,16 +231,14 @@ struct LAExpandedView: View {
                     Spacer()
                     Text("Seat \(attrs.seat)").font(.system(size: 11)).foregroundStyle(.secondary)
                     Spacer()
-                    Text(state.departureTime, style: .relative)
-                        .font(.system(size: 11, weight: .semibold))
+                    RelativeTimeText(date: state.departureTime)
                 }
             case "en_route", "landing":
                 HStack {
                     Text(state.departureTime, style: .time)
                         .font(.system(size: 11)).foregroundStyle(.secondary)
                     Spacer()
-                    Text(state.arrivalTime, style: .relative)
-                        .font(.system(size: 11, weight: .semibold))
+                    RelativeTimeText(date: state.arrivalTime)
                     Spacer()
                     Text(state.arrivalTime, style: .time)
                         .font(.system(size: 11)).foregroundStyle(.secondary)
