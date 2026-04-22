@@ -12,7 +12,6 @@ class LiveActivityListener {
 
     private var navigationChannel: FlutterMethodChannel?
     
-    var uploader: SupabaseUploader = .init()
     var liveActivityManager: LiveActivityManager = .shared
     var userNotificationCenter: UNUserNotificationCenter = .current()
 
@@ -110,16 +109,6 @@ class LiveActivityListener {
 
 
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
-    }
-
-    // Upload device token to Supabase so backend can send silent pushes
-    override func application(
-        _ application: UIApplication,
-        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
-    ) {
-        let hex = deviceToken.asHex()
-        print("[Push] device token: \(hex.prefix(16))...")
-        Task { await uploader.upsertDeviceToken(hex) }
     }
 
     // Handle Spotlight search result taps
