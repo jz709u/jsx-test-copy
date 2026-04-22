@@ -36,6 +36,14 @@ enum SupabaseUploader {
         }
     }
 
+    /// Delete the Live Activity row when the user dismisses the widget.
+    static func deleteUpdateToken(flightId: String) {
+        request(method: "DELETE",
+                path: "/live_activities?flight_id=eq.\(flightId)",
+                body: [:],
+                prefer: "return=minimal")
+    }
+
     /// Upload the Live Activity update token for a specific flight.
     static func uploadUpdateToken(flightId: String, pushToken: String) {
         request(

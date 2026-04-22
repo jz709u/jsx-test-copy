@@ -42,6 +42,8 @@ final class LiveActivityManager {
                     .set(hex, forKey: "jsx_la_push_token")
             }
         }
+
+        monitorDismissal(of: activity!, flightId: attrs.flightId)
     }
 
     func update(_ args: [String: Any]) {
@@ -92,6 +94,22 @@ final class LiveActivityManager {
                 self?.latestPushToken = hex
                 UserDefaults(suiteName: "group.jsx.jsxAppCopy")?.set(hex, forKey: "jsx_la_push_token")
                 SupabaseUploader.uploadUpdateToken(flightId: activity.attributes.flightId, pushToken: hex)
+            }
+        }
+
+        monitorDismissal(of: activity, flightId: activity.attributes.flightId)
+    }
+
+    private func monitorDismissal(of activity: Activity<JSXFlightAttributes>, flightId: String) {
+        Task { [weak self] in
+            for await state in activity.activityStateUpdates {
+                guard state == .dismissed else { continue }
+                print("[LA] activity dismissed by user, cleaning up flightId=\(flightId)")
+                self?.activity = nil
+                self?.latestPushToken = nil
+                UserDefaults(suiteName: "group.jsx.jsxAppCopy")?.removeObject(forKey: "jsx_la_push_token")
+                SupabaseUploader.deleteUpdateToken(flightId: flightId)
+                return
             }
         }
     }
