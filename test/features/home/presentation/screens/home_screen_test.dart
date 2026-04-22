@@ -216,5 +216,182 @@ void main() {
         expect(find.text('JSX4K8P'), findsAtLeastNWidgets(2));
       });
     });
+
+    group('_NextFlightCard', () {
+      Future<void> pump(WidgetTester tester, Booking booking) async {
+        await tester.pumpWidget(_wrap(
+          child: const HomeScreen(),
+          overrides: _overrides(
+            user: AsyncValue.data(_user),
+            bookings: AsyncValue.data([booking]),
+          ),
+        ));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 700));
+      }
+
+      testWidgets('shows "X days, Yh away" when departure is more than a day out',
+          (tester) async {
+        final booking = _booking(
+          departure: _now.add(const Duration(days: 2, hours: 3)),
+        );
+        await pump(tester, booking);
+        expect(find.textContaining('days'), findsOneWidget);
+        expect(find.textContaining('away'), findsOneWidget);
+      });
+
+      testWidgets('shows "Xh Ym away" when departure is within the same day',
+          (tester) async {
+        final booking = _booking(
+          departure: _now.add(const Duration(hours: 4, minutes: 30)),
+        );
+        await pump(tester, booking);
+        expect(find.textContaining('4h'), findsOneWidget);
+        expect(find.textContaining('away'), findsOneWidget);
+      });
+
+      testWidgets('shows confirmation code', (tester) async {
+        await pump(tester, _booking());
+        expect(find.text('JSX4K8P'), findsAtLeastNWidgets(1));
+      });
+
+      testWidgets('shows StatusBadge for the flight', (tester) async {
+        await pump(tester, _booking());
+        // StatusBadge renders "On Time" text for FlightStatus.onTime
+        expect(find.text('On Time'), findsOneWidget);
+      });
+    });
+
+    group('_LoyaltyCard', () {
+      Future<void> pumpWithPoints(WidgetTester tester, int points) async {
+        final user = User(
+          id: 'u1', firstName: 'Alex', lastName: 'Smith',
+          email: 'a@b.com', phone: '1',
+          loyaltyPoints: points,
+          creditBalance: 100,
+          memberSince: '2023',
+          preferredSeat: 'window',
+        );
+        await tester.pumpWidget(_wrap(
+          child: const HomeScreen(),
+          overrides: [
+            currentUserProvider.overrideWith((ref) async => user),
+            bookingsProvider.overrideWith((ref) async => <Booking>[]),
+          ],
+        ));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 700));
+      }
+
+      testWidgets('shows CLUB JSX header', (tester) async {
+        await pumpWithPoints(tester, 0);
+        expect(find.text('CLUB JSX'), findsOneWidget);
+      });
+
+      testWidgets('shows Member badge', (tester) async {
+        await pumpWithPoints(tester, 0);
+        expect(find.text('Member'), findsOneWidget);
+      });
+
+      testWidgets('1000 points to next reward when at 0 points', (tester) async {
+        await pumpWithPoints(tester, 0);
+        expect(find.text('1000 points to next reward'), findsOneWidget);
+      });
+
+      testWidgets('500 points to next reward when at 500 points', (tester) async {
+        await pumpWithPoints(tester, 500);
+        expect(find.text('500 points to next reward'), findsOneWidget);
+      });
+
+      testWidgets('1000 points to next reward at exact tier boundary',
+          (tester) async {
+        await pumpWithPoints(tester, 1000);
+        expect(find.text('1000 points to next reward'), findsOneWidget);
+      });
+
+      testWidgets('1 point to next reward at 999 points', (tester) async {
+        await pumpWithPoints(tester, 999);
+        expect(find.text('1 points to next reward'), findsOneWidget);
+      });
+    });
+
+    group('_PopularRoutesGrid', () {
+      Future<void> pump(WidgetTester tester) async {
+        await tester.pumpWidget(_wrap(
+          child: const HomeScreen(),
+          overrides: _overrides(
+            user: AsyncValue.data(_user),
+            bookings: AsyncValue.data(const []),
+          ),
+        ));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 700));
+      }
+
+      testWidgets('renders all 6 route chips', (tester) async {
+        await pump(tester);
+        for (final label in [
+          'Dallas → LA',
+          'LA → Dallas',
+          'Dallas → Vegas',
+          'Dallas → Oakland',
+          'Austin → Dallas',
+          'Vegas → LA',
+        ]) {
+          expect(find.text(label), findsOneWidget, reason: '$label not found');
+        }
+      });
+    });
+
+    group('_SectionHeader', () {
+      Future<void> pump(WidgetTester tester, List<Booking> bookings) async {
+        await tester.pumpWidget(_wrap(
+          child: const HomeScreen(),
+          overrides: _overrides(
+            user: AsyncValue.data(_user),
+            bookings: AsyncValue.data(bookings),
+          ),
+        ));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 700));
+      }
+
+      testWidgets('shows Upcoming Trips section title', (tester) async {
+        await pump(tester, []);
+        expect(find.text('Upcoming Trips'), findsOneWidget);
+      });
+
+      testWidgets('count badge shows 0 when no upcoming bookings',
+          (tester) async {
+        await pump(tester, []);
+        expect(find.text('0'), findsOneWidget);
+      });
+
+      testWidgets('count badge shows correct count with bookings', (tester) async {
+        await pump(tester, [_booking(), _booking(), _booking()]);
+        expect(find.text('3'), findsOneWidget);
+      });
+    });
+
+    group('greeting', () {
+      testWidgets('contains one of the three valid time-of-day greetings',
+          (tester) async {
+        await tester.pumpWidget(_wrap(
+          child: const HomeScreen(),
+          overrides: _overrides(
+            user: AsyncValue.data(_user),
+            bookings: AsyncValue.data(const []),
+          ),
+        ));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 700));
+
+        final validGreetings = ['Good morning', 'Good afternoon', 'Good evening'];
+        final found = validGreetings.any(
+          (g) => find.textContaining(g).evaluate().isNotEmpty,
+        );
+        expect(found, isTrue);
+      });
+    });
   });
 }
