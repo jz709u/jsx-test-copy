@@ -13,13 +13,8 @@
  *
  * Call with POST body:
  * {
- *   "flight_id": "JSX-1021",
- *   "status": "On Time",
- *   "phase": "cruising",
- *   "progress": 0.45,
- *   "minutesRemaining": 42,
- *   "altitudeFt": 37000,
- *   "speedMph": 480
+ *   "flight_id": "JSX-1021-20260422",
+ *   "status": "On Time"
  * }
  */
 
@@ -30,31 +25,45 @@ const APNS_HOST = Deno.env.get('APNS_ENV') === 'production'
   ? 'https://api.push.apple.com'
   : 'https://api.sandbox.push.apple.com'
 
+// Swift's Codable decodes Date as seconds since Jan 1 2001, not Unix epoch.
+const swiftEpochOffset = 978307200
+function toSwiftDate(iso: string): number {
+  return Math.floor(new Date(iso).getTime() / 1000) - swiftEpochOffset
+}
+
+function fmtTime(iso: string): string {
+  const d = new Date(iso)
+  const h = d.getUTCHours()
+  const m = d.getUTCMinutes().toString().padStart(2, '0')
+  const period = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${hour}:${m} ${period}`
+}
+
 Deno.serve(async (req: Request) => {
   try {
     const body = await req.json()
-    const {
-      flight_id,
-      status = 'On Time',
-      phase = 'cruising',
-      progress = 0,
-      minutesRemaining = 0,
-      altitudeFt = 0,
-      speedMph = 0,
-    } = body
+    const { flight_id, status = 'On Time' } = body
 
     if (!flight_id) {
       return new Response(JSON.stringify({ error: 'flight_id required' }), { status: 400 })
     }
 
-    // Fetch the push token from Supabase
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     )
+
+    // Fetch push token + flight times in one query
     const { data, error } = await supabase
       .from('live_activities')
-      .select('push_token')
+      .select(`
+        push_token,
+        flight:flights!live_activities_flight_id_fkey (
+          departure_at,
+          arrival_at
+        )
+      `)
       .eq('flight_id', flight_id)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -64,28 +73,33 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: 'No active Live Activity for this flight' }), { status: 404 })
     }
 
-    // Build APNs JWT (valid for 60 min, Apple recommends refreshing every 20 min)
-    const privateKeyPem = Deno.env.get('APNS_PRIVATE_KEY')!
-    const privateKey = await importPKCS8(privateKeyPem, 'ES256')
+    const flight = data.flight as any
+
+    const contentState = {
+      status,
+      phase:         'pre_departure',
+      progress:      0,
+      departureTime: flight?.departure_at ? toSwiftDate(flight.departure_at) : 0,
+      arrivalTime:   flight?.arrival_at   ? toSwiftDate(flight.arrival_at)   : 0,
+      gate:          '',
+      boardingTime:  flight?.departure_at ? fmtTime(flight.departure_at)     : '',
+      altitudeFt:    0,
+      speedMph:      0,
+    }
+
+    // Build APNs JWT
+    const privateKey = await importPKCS8(Deno.env.get('APNS_PRIVATE_KEY')!, 'ES256')
     const jwt = await new SignJWT({})
       .setProtectedHeader({ alg: 'ES256', kid: Deno.env.get('APNS_KEY_ID')! })
       .setIssuedAt()
       .setIssuer(Deno.env.get('APNS_TEAM_ID')!)
       .sign(privateKey)
 
-    // APNs Live Activity update payload
     const payload = {
       aps: {
         timestamp: Math.floor(Date.now() / 1000),
         event: 'update',
-        'content-state': {
-          status,
-          phase,
-          progress,
-          minutesRemaining,
-          altitudeFt,
-          speedMph,
-        },
+        'content-state': contentState,
       },
     }
 

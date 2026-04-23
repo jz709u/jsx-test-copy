@@ -68,12 +68,13 @@ Deno.serve(async () => {
         confirmation_code,
         departure_time,
         arrival_time,
+        seat_number,
         user_id,
-        flight_schedules!flight_id (
+        flight:flights!flight_id (
           id,
           status,
-          airports!origin_code ( code, city ),
-          dest:airports!dest_code ( code, city )
+          origin:airports!flights_origin_code_fkey ( code, city ),
+          dest:airports!flights_dest_code_fkey ( code, city )
         )
       `)
       .gte('departure_time', new Date(Date.now() + 10 * 60 * 1000).toISOString())
@@ -92,8 +93,8 @@ Deno.serve(async () => {
     const results = []
 
     for (const booking of bookings) {
-      const fs = booking.flight_schedules as any
-      const origin = fs.airports
+      const fs = booking.flight as any
+      const origin = fs.origin
       const dest = fs.dest
 
       const contentState = {
@@ -102,7 +103,7 @@ Deno.serve(async () => {
         progress:      0,
         departureTime: toSwiftDate(booking.departure_time),
         arrivalTime:   toSwiftDate(booking.arrival_time),
-        gate:          booking.gate ?? '',
+        gate:          '',
         boardingTime:  fmtTime(booking.departure_time),
         altitudeFt:    0,
         speedMph:      0,

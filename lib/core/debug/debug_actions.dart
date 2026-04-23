@@ -10,22 +10,68 @@ class DebugActions {
   final SupabaseClient _db;
   DebugActions(this._db);
 
-  // Wipe the 4 seed bookings (by code, not user_id) and re-insert with fresh timestamps.
+  // ── Seed bookings ──────────────────────────────────────────────────────────
+
   Future<void> seedBookings() async {
-    // Delete by confirmation_code so we catch any row with these codes regardless
-    // of which user_id they carry — avoids unique-constraint violations on re-insert.
     await _db.from('bookings').delete().inFilter('confirmation_code', _seedCodes);
 
     final now = DateTime.now().toUtc();
 
-    // Omit null-valued fields entirely so PostgREST uses the column default.
+    // Compute concrete departure times using each route's scheduled hour/minute.
+    final dep1 = _routeDep(now, 3,   7, 30);   // JSX-1021  today+3
+    final dep2 = _routeDep(now, 14,  9, 15);   // JSX-3050  today+14
+    final dep3 = _routeDep(now, -7,  8,  0);   // JSX-2010  today-7
+    final dep4 = _routeDep(now, -30, 6, 45);   // JSX-4010  today-30
+
+    final f1Id = 'JSX-1021-${_dateStr(dep1)}';
+    final f2Id = 'JSX-3050-${_dateStr(dep2)}';
+    final f3Id = 'JSX-2010-${_dateStr(dep3)}';
+    final f4Id = 'JSX-4010-${_dateStr(dep4)}';
+
+    // Upsert the 4 flight rows so FK is satisfied even if the migration
+    // generate_series window doesn't reach these dates.
+    await _db.from('flights').upsert([
+      {
+        'id': f1Id, 'route_id': 'JSX-1021',
+        'origin_code': 'DAL', 'dest_code': 'BUR',
+        'departure_at': dep1.toIso8601String(),
+        'arrival_at': dep1.add(const Duration(hours: 2, minutes: 15)).toIso8601String(),
+        'aircraft': 'Embraer E135', 'total_seats': 30, 'avail_seats': 12,
+        'price': 299, 'status': 'on_time',
+      },
+      {
+        'id': f2Id, 'route_id': 'JSX-3050',
+        'origin_code': 'DAL', 'dest_code': 'LAS',
+        'departure_at': dep2.toIso8601String(),
+        'arrival_at': dep2.add(const Duration(hours: 1, minutes: 45)).toIso8601String(),
+        'aircraft': 'Embraer E135', 'total_seats': 30, 'avail_seats': 22,
+        'price': 199, 'status': 'on_time',
+      },
+      {
+        'id': f3Id, 'route_id': 'JSX-2010',
+        'origin_code': 'BUR', 'dest_code': 'DAL',
+        'departure_at': dep3.toIso8601String(),
+        'arrival_at': dep3.add(const Duration(hours: 2, minutes: 15)).toIso8601String(),
+        'aircraft': 'Embraer E135', 'total_seats': 30, 'avail_seats': 9,
+        'price': 299, 'status': 'on_time',
+      },
+      {
+        'id': f4Id, 'route_id': 'JSX-4010',
+        'origin_code': 'DAL', 'dest_code': 'OAK',
+        'departure_at': dep4.toIso8601String(),
+        'arrival_at': dep4.add(const Duration(hours: 2, minutes: 45)).toIso8601String(),
+        'aircraft': 'Embraer E135', 'total_seats': 30, 'avail_seats': 3,
+        'price': 349, 'status': 'on_time',
+      },
+    ]);
+
     final rows = [
       {
         'user_id': _devUserId,
         'confirmation_code': 'JSX4K8P',
-        'flight_id': 'JSX-1021',
-        'departure_time': now.add(const Duration(days: 3, hours: 2)).toIso8601String(),
-        'arrival_time':   now.add(const Duration(days: 3, hours: 4, minutes: 15)).toIso8601String(),
+        'flight_id': f1Id,
+        'departure_time': dep1.toIso8601String(),
+        'arrival_time': dep1.add(const Duration(hours: 2, minutes: 15)).toIso8601String(),
         'total_paid': 299,
         'booked_at': now.toIso8601String(),
         'status': 'confirmed',
@@ -34,20 +80,20 @@ class DebugActions {
       {
         'user_id': _devUserId,
         'confirmation_code': 'JSX9M2R',
-        'flight_id': 'JSX-3050',
-        'departure_time': now.add(const Duration(days: 14, hours: 3, minutes: 15)).toIso8601String(),
-        'arrival_time':   now.add(const Duration(days: 14, hours: 5)).toIso8601String(),
+        'flight_id': f2Id,
+        'departure_time': dep2.toIso8601String(),
+        'arrival_time': dep2.add(const Duration(hours: 1, minutes: 45)).toIso8601String(),
         'total_paid': 199,
         'booked_at': now.toIso8601String(),
         'status': 'confirmed',
-        // seat_number intentionally omitted — defaults to NULL
+        'seat_number': null,
       },
       {
         'user_id': _devUserId,
         'confirmation_code': 'JSXLT7Q',
-        'flight_id': 'JSX-2010',
-        'departure_time': now.subtract(const Duration(days: 7, hours: 2)).toIso8601String(),
-        'arrival_time':   now.subtract(const Duration(days: 6, hours: 23, minutes: 45)).toIso8601String(),
+        'flight_id': f3Id,
+        'departure_time': dep3.toIso8601String(),
+        'arrival_time': dep3.add(const Duration(hours: 2, minutes: 15)).toIso8601String(),
         'total_paid': 299,
         'booked_at': now.subtract(const Duration(days: 20)).toIso8601String(),
         'status': 'completed',
@@ -56,9 +102,9 @@ class DebugActions {
       {
         'user_id': _devUserId,
         'confirmation_code': 'JSX8WXN',
-        'flight_id': 'JSX-4010',
-        'departure_time': now.subtract(const Duration(days: 30, hours: 1)).toIso8601String(),
-        'arrival_time':   now.subtract(const Duration(days: 29, hours: 22, minutes: 15)).toIso8601String(),
+        'flight_id': f4Id,
+        'departure_time': dep4.toIso8601String(),
+        'arrival_time': dep4.add(const Duration(hours: 2, minutes: 45)).toIso8601String(),
         'total_paid': 349,
         'booked_at': now.subtract(const Duration(days: 45)).toIso8601String(),
         'status': 'completed',
@@ -68,7 +114,6 @@ class DebugActions {
 
     await _db.from('bookings').insert(rows);
 
-    // Re-insert passengers (cascade delete removed them with the bookings).
     final bookings = await _db
         .from('bookings')
         .select('id, confirmation_code')
@@ -87,18 +132,52 @@ class DebugActions {
     if (passengers.isNotEmpty) await _db.from('passengers').insert(passengers);
   }
 
-  // Restore available seats to total_seats for every flight.
+  // ── Flight utilities ────────────────────────────────────────────────────────
+
   Future<void> resetFlightSeats() async {
-    final flights = await _db.from('flight_schedules').select('id, total_seats');
-    for (final f in flights) {
-      await _db
-          .from('flight_schedules')
-          .update({'avail_seats': f['total_seats']})
-          .eq('id', f['id'] as String);
-    }
+    await _db.rpc('reset_flight_seats');
   }
 
-  // Reset dev user's loyalty points and credit balance to seed values.
+  Future<void> setFlightStatus(String flightId, String status) async {
+    await _db.from('flights').update({'status': status}).eq('id', flightId);
+    // Live Activity push is handled server-side by the flight_status_change
+    // Postgres trigger (migration 006), which calls update-live-activity via pg_net.
+  }
+
+  // Today's flights (used by status picker).
+  Future<List<Map<String, dynamic>>> getFlights() async {
+    final now = DateTime.now().toUtc();
+    final start = DateTime.utc(now.year, now.month, now.day);
+    final end = start.add(const Duration(days: 1));
+    final rows = await _db
+        .from('flights')
+        .select('id, route_id, origin_code, dest_code, departure_at, status')
+        .gte('departure_at', start.toIso8601String())
+        .lt('departure_at', end.toIso8601String())
+        .order('departure_at');
+    return List<Map<String, dynamic>>.from(rows);
+  }
+
+  // Update any subset of a flight's columns.
+  Future<void> updateFlight(String id, Map<String, dynamic> fields) async {
+    await _db.from('flights').update(fields).eq('id', id);
+  }
+
+  // Next 7 days of flights with full detail (used by flights viewer).
+  Future<List<Map<String, dynamic>>> getFlightsFull() async {
+    final now = DateTime.now().toUtc();
+    final end = now.add(const Duration(days: 7));
+    final rows = await _db
+        .from('flights')
+        .select('id, route_id, origin_code, dest_code, departure_at, arrival_at, aircraft, total_seats, avail_seats, price, status')
+        .gte('departure_at', now.toIso8601String())
+        .lt('departure_at', end.toIso8601String())
+        .order('departure_at');
+    return List<Map<String, dynamic>>.from(rows);
+  }
+
+  // ── User utilities ──────────────────────────────────────────────────────────
+
   Future<void> resetUserStats() async {
     await _db
         .from('users')
@@ -106,7 +185,6 @@ class DebugActions {
         .eq('id', _devUserId);
   }
 
-  // Add loyalty points to dev user.
   Future<void> addLoyaltyPoints(int delta) async {
     final row = await _db
         .from('users')
@@ -120,34 +198,29 @@ class DebugActions {
         .eq('id', _devUserId);
   }
 
-  // Set a flight's status.
-  Future<void> setFlightStatus(String flightId, String status) async {
-    await _db
-        .from('flight_schedules')
-        .update({'status': status})
-        .eq('id', flightId);
+  // ── Live activities ─────────────────────────────────────────────────────────
+
+  Future<void> triggerLiveActivity() async {
+    final res = await _db.functions.invoke('trigger-live-activity');
+    if (res.status != 200) {
+      throw Exception('trigger-live-activity returned ${res.status}: ${res.data}');
+    }
   }
 
-  // Fetch all flights with their current status (used by status picker).
-  Future<List<Map<String, dynamic>>> getFlights() async {
-    final rows = await _db
-        .from('flight_schedules')
-        .select('id, origin_code, dest_code, status')
-        .order('id');
-    return List<Map<String, dynamic>>.from(rows);
-  }
-
-  // Fetch all flights with full detail (used by the flights viewer).
-  Future<List<Map<String, dynamic>>> getFlightsFull() async {
-    final rows = await _db
-        .from('flight_schedules')
-        .select('id, origin_code, dest_code, dep_hour, dep_minute, dur_minutes, aircraft, total_seats, avail_seats, price, status')
-        .order('id');
-    return List<Map<String, dynamic>>.from(rows);
-  }
-
-  // Delete all rows from live_activities.
   Future<void> clearLiveActivities() async {
     await _db.from('live_activities').delete().neq('id', '00000000-0000-0000-0000-000000000000');
   }
+
+  // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  static DateTime _routeDep(DateTime nowUtc, int dayOffset, int hour, int minute) {
+    final date = DateTime.utc(nowUtc.year, nowUtc.month, nowUtc.day)
+        .add(Duration(days: dayOffset));
+    return date.add(Duration(hours: hour, minutes: minute));
+  }
+
+  static String _dateStr(DateTime utc) =>
+      '${utc.year}'
+      '${utc.month.toString().padLeft(2, '0')}'
+      '${utc.day.toString().padLeft(2, '0')}';
 }

@@ -17,10 +17,10 @@ class SupabaseBookingRepository implements BookingRepository {
         .from('bookings')
         .select(
           '*, '
-          'flight:flight_schedules('
+          'flight:flights('
           '  *, '
-          '  origin:airports!flight_schedules_origin_code_fkey(*), '
-          '  dest:airports!flight_schedules_dest_code_fkey(*)'
+          '  origin:airports!flights_origin_code_fkey(*), '
+          '  dest:airports!flights_dest_code_fkey(*)'
           '), '
           'passengers(*)',
         )
@@ -37,8 +37,8 @@ class SupabaseBookingRepository implements BookingRepository {
       'user_id': SupabaseConfig.devUserId,
       'confirmation_code': code,
       'flight_id': flight.id,
-      'departure_time': flight.departureTime.toIso8601String(),
-      'arrival_time': flight.arrivalTime.toIso8601String(),
+      'departure_time': flight.departureTime.toUtc().toIso8601String(),
+      'arrival_time': flight.arrivalTime.toUtc().toIso8601String(),
       'total_paid': flight.price * passengerCount,
       'status': 'confirmed',
     }).select().single();
