@@ -17,14 +17,17 @@ class ShakeDetector extends StatefulWidget {
 class _ShakeDetectorState extends State<ShakeDetector> {
   StreamSubscription<AccelerometerEvent>? _sub;
   DateTime _lastShake = DateTime(0);
+  var debugMenuOpen = false;
 
-  static const _threshold   = 18.0; // m/s² — magnitude above which we count a shake
-  static const _cooldownMs  = 1500; // ms between consecutive triggers
+  static const _threshold =
+      18.0; // m/s² — magnitude above which we count a shake
+  static const _cooldownMs = 1500; // ms between consecutive triggers
 
   @override
   void initState() {
     super.initState();
-    _sub = accelerometerEventStream(samplingPeriod: SensorInterval.gameInterval).listen(_onAccel);
+    _sub = accelerometerEventStream(samplingPeriod: SensorInterval.gameInterval)
+        .listen(_onAccel);
   }
 
   void _onAccel(AccelerometerEvent e) {
@@ -35,7 +38,15 @@ class _ShakeDetectorState extends State<ShakeDetector> {
     if (now.difference(_lastShake).inMilliseconds < _cooldownMs) return;
     _lastShake = now;
 
-    if (mounted) showDebugMenu(context);
+    if (mounted && !debugMenuOpen) {
+      debugMenuOpen = true;
+      showDebugMenu(
+        context,
+        onClose: () {
+          debugMenuOpen = false;
+        },
+      );
+    }
   }
 
   @override
