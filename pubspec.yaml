@@ -36,6 +36,7 @@ dependencies:
   flutter_riverpod: ^2.6.1
   home_widget: ^0.6.0
   supabase_flutter: ^2.5.0
+  sensors_plus: ^7.0.0
 
 dev_dependencies:
   flutter_test:

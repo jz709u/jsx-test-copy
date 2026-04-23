@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/debug/shake_detector.dart';
 import '../core/theme/app_theme.dart';
 import 'shell/main_shell.dart';
 
@@ -11,7 +12,7 @@ class JsxApp extends StatelessWidget {
       title: 'JSX: How I Fly',
       theme: AppTheme.dark,
       debugShowCheckedModeBanner: false,
-      home: const MainShell(),
+      home: const ShakeDetector(child: MainShell()),
     );
   }
 }

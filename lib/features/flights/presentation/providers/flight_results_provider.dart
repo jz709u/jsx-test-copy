@@ -1,15 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/debug/backend_mode.dart';
+import '../../data/repositories/mock_flight_repository.dart';
 import '../../data/repositories/supabase_flight_repository.dart';
 import '../../domain/entities/airport.dart';
 import '../../domain/entities/flight.dart';
 import '../../domain/repositories/flight_repository.dart';
 import '../../domain/use_cases/search_flights.dart';
 
-final flightRepositoryProvider = Provider<FlightRepository>(
-  (_) => SupabaseFlightRepository(Supabase.instance.client),
-);
+final flightRepositoryProvider = Provider<FlightRepository>((ref) {
+  final client = ref.watch(supabaseClientProvider);
+  if (client == null) return MockFlightRepository();
+  return SupabaseFlightRepository(client);
+});
 
 final searchFlightsUseCaseProvider = Provider<SearchFlights>(
   (ref) => SearchFlights(ref.watch(flightRepositoryProvider)),
