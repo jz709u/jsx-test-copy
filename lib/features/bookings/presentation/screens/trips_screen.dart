@@ -29,6 +29,11 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
     super.dispose();
   }
 
+  Future<void> _refresh() async {
+    ref.invalidate(bookingsProvider);
+    await ref.read(bookingsProvider.future);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bookingsAsync = ref.watch(bookingsProvider);
@@ -54,8 +59,8 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
           return TabBarView(
             controller: _tab,
             children: [
-              _TripList(bookings: upcoming, empty: const _EmptyState(icon: Icons.flight_takeoff, title: 'No upcoming trips', subtitle: 'Book your next adventure with JSX')),
-              _TripList(bookings: past, empty: const _EmptyState(icon: Icons.history, title: 'No past trips', subtitle: 'Your completed flights will appear here')),
+              _TripList(bookings: upcoming, onRefresh: _refresh, empty: const _EmptyState(icon: Icons.flight_takeoff, title: 'No upcoming trips', subtitle: 'Book your next adventure with JSX')),
+              _TripList(bookings: past, onRefresh: _refresh, empty: const _EmptyState(icon: Icons.history, title: 'No past trips', subtitle: 'Your completed flights will appear here')),
             ],
           );
         },
@@ -67,16 +72,31 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
 class _TripList extends StatelessWidget {
   final List<Booking> bookings;
   final Widget empty;
-  const _TripList({required this.bookings, required this.empty});
+  final Future<void> Function() onRefresh;
+  const _TripList({required this.bookings, required this.empty, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
-    if (bookings.isEmpty) return empty;
-    return ListView.separated(
-      padding: const EdgeInsets.all(20),
-      itemCount: bookings.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (_, i) => _BookingCard(booking: bookings[i]),
+    if (bookings.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        color: AppColors.gold,
+        backgroundColor: AppColors.surface,
+        child: CustomScrollView(
+          slivers: [SliverFillRemaining(child: empty)],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      color: AppColors.gold,
+      backgroundColor: AppColors.surface,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(20),
+        itemCount: bookings.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (_, i) => _BookingCard(booking: bookings[i]),
+      ),
     );
   }
 }

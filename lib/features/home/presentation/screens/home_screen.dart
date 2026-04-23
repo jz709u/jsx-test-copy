@@ -25,7 +25,18 @@ class HomeScreen extends ConsumerWidget {
         data: (user) => bookingsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
           error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
-          data: (bookings) => _HomeBody(user: user, bookings: bookings),
+          data: (bookings) => _HomeBody(
+          user: user,
+          bookings: bookings,
+          onRefresh: () async {
+            ref.invalidate(currentUserProvider);
+            ref.invalidate(bookingsProvider);
+            await Future.wait([
+              ref.read(currentUserProvider.future),
+              ref.read(bookingsProvider.future),
+            ]);
+          },
+        ),
         ),
       ),
     );
@@ -35,14 +46,19 @@ class HomeScreen extends ConsumerWidget {
 class _HomeBody extends StatelessWidget {
   final User user;
   final List<Booking> bookings;
+  final Future<void> Function() onRefresh;
 
-  const _HomeBody({required this.user, required this.bookings});
+  const _HomeBody({required this.user, required this.bookings, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
     final upcoming = bookings.where((b) => b.isUpcoming).toList();
 
-    return CustomScrollView(
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      color: AppColors.gold,
+      backgroundColor: AppColors.surface,
+      child: CustomScrollView(
       slivers: [
         SliverAppBar(
           expandedHeight: 120,
@@ -111,6 +127,7 @@ class _HomeBody extends StatelessWidget {
           ),
         ),
       ],
+      ),
     );
   }
 

@@ -4,28 +4,43 @@ import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/user.dart';
 import '../providers/user_provider.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  Future<void> _refresh() async {
+    ref.invalidate(currentUserProvider);
+    await ref.read(currentUserProvider.future);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userAsync = ref.watch(currentUserProvider);
     return userAsync.when(
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.gold))),
       error: (e, _) => Scaffold(body: Center(child: Text('$e', style: const TextStyle(color: AppColors.error)))),
-      data: (user) => _ProfileBody(user: user),
+      data: (user) => _ProfileBody(user: user, onRefresh: _refresh),
     );
   }
 }
 
 class _ProfileBody extends StatelessWidget {
   final User user;
-  const _ProfileBody({required this.user});
+  final Future<void> Function() onRefresh;
+  const _ProfileBody({required this.user, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: CustomScrollView(
-          slivers: [
+        body: RefreshIndicator(
+          onRefresh: onRefresh,
+          color: AppColors.gold,
+          backgroundColor: AppColors.surface,
+          child: CustomScrollView(
+            slivers: [
             SliverAppBar(
               expandedHeight: 200,
               pinned: true,
@@ -73,6 +88,7 @@ class _ProfileBody extends StatelessWidget {
               ),
             ),
           ],
+          ),
         ),
       );
 }
