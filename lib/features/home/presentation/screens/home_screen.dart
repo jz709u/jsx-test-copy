@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../bookings/domain/entities/booking.dart';
 import '../../../bookings/presentation/providers/bookings_provider.dart';
+import '../../../flights/presentation/providers/flight_realtime_provider.dart';
 import '../../../flights/presentation/widgets/flight_route_display.dart';
 import '../../../flights/presentation/widgets/status_badge.dart';
 import '../../../user/domain/entities/user.dart';
@@ -17,6 +18,8 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bookingsAsync = ref.watch(bookingsProvider);
     final userAsync = ref.watch(currentUserProvider);
+    // Rebuild every minute so countdown labels stay accurate.
+    ref.watch(minuteTickerProvider);
 
     return Scaffold(
       body: userAsync.when(
