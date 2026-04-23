@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 const _devUserId = 'a0000000-0000-0000-0000-000000000001';
@@ -161,6 +162,39 @@ class DebugActions {
   // Update any subset of a flight's columns.
   Future<void> updateFlight(String id, Map<String, dynamic> fields) async {
     await _db.from('flights').update(fields).eq('id', id);
+  }
+
+  // Book a flight for the dev user (1 passenger). Returns confirmation code.
+  Future<String> bookFlight(Map<String, dynamic> flight) async {
+    final code = _generateCode();
+    final booking = await _db.from('bookings').insert({
+      'user_id': _devUserId,
+      'confirmation_code': code,
+      'flight_id': flight['id'],
+      'departure_time': flight['departure_at'],
+      'arrival_time': flight['arrival_at'],
+      'total_paid': (flight['price'] as num).toDouble(),
+      'status': 'confirmed',
+    }).select().single();
+
+    await _db.from('passengers').insert({
+      'booking_id': booking['id'],
+      'first_name': 'Alex',
+      'last_name': 'Rivera',
+    });
+
+    await _db.rpc('decrement_seats', params: {
+      'flight_id': flight['id'],
+      'count': 1,
+    });
+
+    return code;
+  }
+
+  static String _generateCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    final r = Random.secure();
+    return 'JSX${List.generate(4, (_) => chars[r.nextInt(chars.length)]).join()}';
   }
 
   // Next 7 days of flights with full detail (used by flights viewer).

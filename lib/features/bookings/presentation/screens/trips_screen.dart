@@ -14,7 +14,8 @@ class TripsScreen extends ConsumerStatefulWidget {
   ConsumerState<TripsScreen> createState() => _TripsScreenState();
 }
 
-class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProviderStateMixin {
+class _TripsScreenState extends ConsumerState<TripsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tab;
 
   @override
@@ -51,16 +52,33 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
         ),
       ),
       body: bookingsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-        error: (e, _) => Center(child: Text('$e', style: const TextStyle(color: AppColors.error))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.gold)),
+        error: (e, _) => Center(
+            child: Text('$e', style: const TextStyle(color: AppColors.error))),
         data: (bookings) {
-          final upcoming = bookings.where((b) => b.isUpcoming).toList();
-          final past = bookings.where((b) => b.isPast).toList();
+          final sortedBookings = bookings
+            ..sort((a, b) =>
+                a.flight.departureTime.compareTo(b.flight.departureTime));
+          final upcoming = sortedBookings.where((b) => b.isUpcoming).toList();
+          final past = sortedBookings.where((b) => b.isPast).toList();
           return TabBarView(
             controller: _tab,
             children: [
-              _TripList(bookings: upcoming, onRefresh: _refresh, empty: const _EmptyState(icon: Icons.flight_takeoff, title: 'No upcoming trips', subtitle: 'Book your next adventure with JSX')),
-              _TripList(bookings: past, onRefresh: _refresh, empty: const _EmptyState(icon: Icons.history, title: 'No past trips', subtitle: 'Your completed flights will appear here')),
+              _TripList(
+                  bookings: upcoming,
+                  onRefresh: _refresh,
+                  empty: const _EmptyState(
+                      icon: Icons.flight_takeoff,
+                      title: 'No upcoming trips',
+                      subtitle: 'Book your next adventure with JSX')),
+              _TripList(
+                  bookings: past,
+                  onRefresh: _refresh,
+                  empty: const _EmptyState(
+                      icon: Icons.history,
+                      title: 'No past trips',
+                      subtitle: 'Your completed flights will appear here')),
             ],
           );
         },
@@ -73,7 +91,8 @@ class _TripList extends StatelessWidget {
   final List<Booking> bookings;
   final Widget empty;
   final Future<void> Function() onRefresh;
-  const _TripList({required this.bookings, required this.empty, required this.onRefresh});
+  const _TripList(
+      {required this.bookings, required this.empty, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
@@ -107,9 +126,14 @@ class _BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => TripDetailScreen(booking: booking))),
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => TripDetailScreen(booking: booking))),
         child: Container(
-          decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+          decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16)),
           child: Column(
             children: [
               Padding(
@@ -119,7 +143,11 @@ class _BookingCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(DateFormat('EEE, MMM d, yyyy').format(booking.flight.departureTime), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                        Text(
+                            DateFormat('EEE, MMM d, yyyy')
+                                .format(booking.flight.departureTime),
+                            style: const TextStyle(
+                                color: AppColors.textSecondary, fontSize: 12)),
                         _BookingStatusBadge(status: booking.status),
                       ],
                     ),
@@ -129,27 +157,45 @@ class _BookingCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                decoration: const BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.vertical(bottom: Radius.circular(16))),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                decoration: const BoxDecoration(
+                    color: AppColors.surfaceElevated,
+                    borderRadius:
+                        BorderRadius.vertical(bottom: Radius.circular(16))),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.confirmation_number_outlined, size: 13, color: AppColors.textMuted),
+                        const Icon(Icons.confirmation_number_outlined,
+                            size: 13, color: AppColors.textMuted),
                         const SizedBox(width: 6),
-                        Text(booking.confirmationCode, style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1)),
+                        Text(booking.confirmationCode,
+                            style: const TextStyle(
+                                color: AppColors.gold,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1)),
                       ],
                     ),
                     Row(
                       children: [
-                        Icon(Icons.people_outline, size: 13, color: AppColors.textMuted),
+                        Icon(Icons.people_outline,
+                            size: 13, color: AppColors.textMuted),
                         const SizedBox(width: 4),
-                        Text('${booking.passengers.length} pax', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                        Text('${booking.passengers.length} pax',
+                            style: const TextStyle(
+                                color: AppColors.textSecondary, fontSize: 12)),
                         const SizedBox(width: 16),
-                        Text('\$${booking.totalPaid.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                        Text('\$${booking.totalPaid.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                                color: AppColors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600)),
                         const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward_ios, size: 11, color: AppColors.textMuted),
+                        const Icon(Icons.arrow_forward_ios,
+                            size: 11, color: AppColors.textMuted),
                       ],
                     ),
                   ],
@@ -167,27 +213,39 @@ class _BookingStatusBadge extends StatelessWidget {
 
   Color get _color {
     switch (status) {
-      case BookingStatus.confirmed: return AppColors.success;
-      case BookingStatus.checkedIn: return AppColors.gold;
-      case BookingStatus.cancelled: return AppColors.error;
-      case BookingStatus.completed: return AppColors.textSecondary;
+      case BookingStatus.confirmed:
+        return AppColors.success;
+      case BookingStatus.checkedIn:
+        return AppColors.gold;
+      case BookingStatus.cancelled:
+        return AppColors.error;
+      case BookingStatus.completed:
+        return AppColors.textSecondary;
     }
   }
 
   String get _label {
     switch (status) {
-      case BookingStatus.confirmed: return 'Confirmed';
-      case BookingStatus.checkedIn: return 'Checked In';
-      case BookingStatus.cancelled: return 'Cancelled';
-      case BookingStatus.completed: return 'Completed';
+      case BookingStatus.confirmed:
+        return 'Confirmed';
+      case BookingStatus.checkedIn:
+        return 'Checked In';
+      case BookingStatus.cancelled:
+        return 'Cancelled';
+      case BookingStatus.completed:
+        return 'Completed';
     }
   }
 
   @override
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(color: _color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
-        child: Text(_label, style: TextStyle(color: _color, fontSize: 11, fontWeight: FontWeight.w600)),
+        decoration: BoxDecoration(
+            color: _color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(6)),
+        child: Text(_label,
+            style: TextStyle(
+                color: _color, fontSize: 11, fontWeight: FontWeight.w600)),
       );
 }
 
@@ -195,7 +253,8 @@ class _EmptyState extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  const _EmptyState({required this.icon, required this.title, required this.subtitle});
+  const _EmptyState(
+      {required this.icon, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) => Center(
@@ -206,7 +265,9 @@ class _EmptyState extends StatelessWidget {
             const SizedBox(height: 16),
             Text(title, style: Theme.of(context).textTheme.headlineMedium),
             const SizedBox(height: 8),
-            Text(subtitle, style: const TextStyle(color: AppColors.textSecondary), textAlign: TextAlign.center),
+            Text(subtitle,
+                style: const TextStyle(color: AppColors.textSecondary),
+                textAlign: TextAlign.center),
           ],
         ),
       );

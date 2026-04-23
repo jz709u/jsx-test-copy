@@ -30,12 +30,10 @@ class WidgetUpdateService {
         'jsx_departure_time': 'No upcoming flights',
         'jsx_status': '',
         'jsx_confirmation': '',
-        'jsx_minutes_away': 0,
-        'jsx_time_away': '',
+        'jsx_departure_ts': '',
       });
     } else {
       final flight = booking.flight;
-      final diff = flight.departureTime.difference(DateTime.now());
       final timeFmt = DateFormat('h:mm a');
 
       await _saveAll({
@@ -46,8 +44,7 @@ class WidgetUpdateService {
         'jsx_departure_time': timeFmt.format(flight.departureTime),
         'jsx_status': flight.status.label,
         'jsx_confirmation': booking.confirmationCode,
-        'jsx_minutes_away': diff.inMinutes.clamp(0, 99999),
-        'jsx_time_away': _formatDiff(diff),
+        'jsx_departure_ts': flight.departureTime.toUtc().toIso8601String(),
       });
     }
 
@@ -58,13 +55,5 @@ class WidgetUpdateService {
     for (final entry in data.entries) {
       await HomeWidget.saveWidgetData(entry.key, entry.value);
     }
-  }
-
-  static String _formatDiff(Duration diff) {
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m away';
-    final h = diff.inHours;
-    final m = diff.inMinutes.remainder(60);
-    if (diff.inDays == 0) return '${h}h ${m}m away';
-    return '${diff.inDays}d ${h.remainder(24)}h away';
   }
 }

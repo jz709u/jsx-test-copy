@@ -12,8 +12,22 @@ struct FlightEntry: TimelineEntry {
     let departureTime: String
     let status: String
     let confirmationCode: String
-    let timeAway: String
-    let minutesAway: Int
+    let departure: Date?
+
+    var minutesAway: Int {
+        guard let dep = departure else { return 0 }
+        return max(0, Int(dep.timeIntervalSinceNow / 60))
+    }
+
+    var timeAway: String {
+        guard departure != nil else { return "" }
+        let m = minutesAway
+        if m < 60 { return "\(m)m away" }
+        let h = m / 60
+        let rem = m % 60
+        if m < 1440 { return rem == 0 ? "\(h)h away" : "\(h)h \(rem)m away" }
+        return "\(m / 1440)d \(h % 24)h away"
+    }
 
     static var placeholder: FlightEntry {
         FlightEntry(
@@ -25,8 +39,7 @@ struct FlightEntry: TimelineEntry {
             departureTime: "7:30 AM",
             status: "On Time",
             confirmationCode: "JSX4K8P",
-            timeAway: "2h 15m away",
-            minutesAway: 135
+            departure: Date().addingTimeInterval(135 * 60)
         )
     }
 
@@ -40,8 +53,7 @@ struct FlightEntry: TimelineEntry {
             departureTime: "No upcoming flights",
             status: "",
             confirmationCode: "",
-            timeAway: "",
-            minutesAway: 0
+            departure: nil
         )
     }
 }
@@ -61,8 +73,8 @@ struct FlightProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<FlightEntry>) -> Void) {
         let entry = load()
-        // Refresh every 5 minutes so the countdown stays accurate.
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 5, to: Date())!
+        // Refresh every 5 minutes so the live countdown stays accurate.
+        let nextUpdate = Date().addingTimeInterval(5 * 60)
         completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
     }
 
@@ -71,17 +83,21 @@ struct FlightProvider: TimelineProvider {
         let hasFlight = d?.bool(forKey: "jsx_has_flight") ?? false
         guard hasFlight else { return .empty }
 
+        var departure: Date? = nil
+        if let ts = d?.string(forKey: "jsx_departure_ts"), !ts.isEmpty {
+            departure = ISO8601DateFormatter().date(from: ts)
+        }
+
         return FlightEntry(
             date: Date(),
             hasFlight: true,
-            origin:          d?.string(forKey: "jsx_origin")         ?? "—",
-            destination:     d?.string(forKey: "jsx_destination")    ?? "—",
-            route:           d?.string(forKey: "jsx_route")          ?? "—",
-            departureTime:   d?.string(forKey: "jsx_departure_time") ?? "—",
-            status:          d?.string(forKey: "jsx_status")         ?? "",
-            confirmationCode: d?.string(forKey: "jsx_confirmation")  ?? "",
-            timeAway:        d?.string(forKey: "jsx_time_away")      ?? "",
-            minutesAway:     d?.integer(forKey: "jsx_minutes_away")  ?? 0
+            origin:           d?.string(forKey: "jsx_origin")         ?? "—",
+            destination:      d?.string(forKey: "jsx_destination")    ?? "—",
+            route:            d?.string(forKey: "jsx_route")          ?? "—",
+            departureTime:    d?.string(forKey: "jsx_departure_time") ?? "—",
+            status:           d?.string(forKey: "jsx_status")         ?? "",
+            confirmationCode: d?.string(forKey: "jsx_confirmation")   ?? "",
+            departure:        departure
         )
     }
 }
@@ -284,4 +300,3 @@ struct JSXWidget: Widget {
         ])
     }
 }
-

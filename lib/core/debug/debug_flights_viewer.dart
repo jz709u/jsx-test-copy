@@ -14,6 +14,7 @@ class DebugFlightsViewer extends StatefulWidget {
 
 class _DebugFlightsViewerState extends State<DebugFlightsViewer> {
   late Future<List<Map<String, dynamic>>> _future;
+  final Set<String> _booking = {};
 
   @override
   void initState() {
@@ -21,7 +22,8 @@ class _DebugFlightsViewerState extends State<DebugFlightsViewer> {
     _future = widget.actions.getFlightsFull();
   }
 
-  void _refresh() => setState(() => _future = widget.actions.getFlightsFull());
+  void _refresh() =>
+      setState(() => _future = widget.actions.getFlightsFull());
 
   void _openEditor(Map<String, dynamic> flight) {
     showModalBottomSheet(
@@ -37,6 +39,33 @@ class _DebugFlightsViewerState extends State<DebugFlightsViewer> {
         onSaved: _refresh,
       ),
     );
+  }
+
+  Future<void> _book(Map<String, dynamic> flight) async {
+    final id = flight['id'] as String;
+    if (_booking.contains(id)) return;
+    setState(() => _booking.add(id));
+    try {
+      final code = await widget.actions.bookFlight(flight);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Booked — $code',
+            style: const TextStyle(color: AppColors.white, fontSize: 13)),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ));
+      _refresh();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('$e',
+            style: const TextStyle(color: AppColors.white, fontSize: 13)),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ));
+    } finally {
+      if (mounted) setState(() => _booking.remove(id));
+    }
   }
 
   @override
@@ -57,8 +86,7 @@ class _DebugFlightsViewerState extends State<DebugFlightsViewer> {
                   icon: Icons.flight_rounded, label: 'FLIGHTS'),
               const Spacer(),
               GestureDetector(
-                onTap: () =>
-                    setState(() => _future = widget.actions.getFlightsFull()),
+                onTap: _refresh,
                 child: const Icon(Icons.refresh_rounded,
                     size: 18, color: AppColors.textSecondary),
               ),
@@ -80,14 +108,16 @@ class _DebugFlightsViewerState extends State<DebugFlightsViewer> {
                 return Text('${snap.error}',
                     style: const TextStyle(color: AppColors.error));
               }
-              final flights = snap.data ?? [];
+              final flights = List<Map<String, dynamic>>.from(snap.data ?? []);
               flights.sort((a, b) => (a['departure_at'] as String)
                   .compareTo(b['departure_at'] as String));
               return Column(
                 children: flights
                     .map((f) => _FlightDetailRow(
                           flight: f,
+                          booking: _booking.contains(f['id'] as String),
                           onTap: () => _openEditor(f),
+                          onBook: () => _book(f),
                         ))
                     .toList(),
               );
@@ -101,8 +131,16 @@ class _DebugFlightsViewerState extends State<DebugFlightsViewer> {
 
 class _FlightDetailRow extends StatelessWidget {
   final Map<String, dynamic> flight;
+  final bool booking;
   final VoidCallback onTap;
-  const _FlightDetailRow({required this.flight, required this.onTap});
+  final VoidCallback onBook;
+
+  const _FlightDetailRow({
+    required this.flight,
+    required this.booking,
+    required this.onTap,
+    required this.onBook,
+  });
 
   String _fmt(String iso) {
     final dt = DateTime.parse(iso).toLocal();
@@ -133,63 +171,97 @@ class _FlightDetailRow extends StatelessWidget {
     final dur = '${durMin ~/ 60}h ${durMin % 60}m';
 
     return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceElevated,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(routeId,
-                      style: const TextStyle(
-                          color: AppColors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700)),
-                  const Spacer(),
-                  DebugStatusChip(status),
-                  const SizedBox(width: 6),
-                  const Icon(Icons.chevron_right,
-                      size: 14, color: AppColors.textMuted),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text('$origin → $dest',
-                      style: const TextStyle(
-                          color: AppColors.gold,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600)),
-                  const SizedBox(width: 8),
-                  Text('$dep – $arr ($dur)',
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceElevated,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(routeId,
+                    style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700)),
+                const Spacer(),
+                DebugStatusChip(status),
+                const SizedBox(width: 6),
+                const Icon(Icons.chevron_right,
+                    size: 14, color: AppColors.textMuted),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text('$origin → $dest',
+                    style: const TextStyle(
+                        color: AppColors.gold,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text('$dep – $arr ($dur)',
                       style: const TextStyle(
                           color: AppColors.textSecondary, fontSize: 12)),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  DebugChip(icon: Icons.airplanemode_active, label: aircraft),
-                  const SizedBox(width: 8),
-                  DebugChip(
-                    icon: Icons.airline_seat_recline_normal,
-                    label: '$avail / $total seats',
-                    highlight: avail <= 5,
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                DebugChip(icon: Icons.airplanemode_active, label: aircraft),
+                const SizedBox(width: 6),
+                DebugChip(
+                  icon: Icons.airline_seat_recline_normal,
+                  label: '$avail / $total',
+                  highlight: avail <= 5,
+                ),
+                const SizedBox(width: 6),
+                DebugChip(
+                    icon: Icons.attach_money,
+                    label: '\$${price.toStringAsFixed(0)}'),
+                const Spacer(),
+                GestureDetector(
+                  onTap: booking ? null : onBook,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: booking
+                          ? AppColors.textMuted
+                          : AppColors.gold,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: booking
+                        ? const SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.5,
+                              color: AppColors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Book',
+                            style: TextStyle(
+                              color: AppColors.background,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                   ),
-                  const SizedBox(width: 8),
-                  DebugChip(
-                      icon: Icons.attach_money,
-                      label: '\$${price.toStringAsFixed(0)}'),
-                ],
-              ),
-            ],
-          ),
-        ));
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
