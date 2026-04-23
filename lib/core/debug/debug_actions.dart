@@ -27,6 +27,7 @@ class DebugActions {
         'departure_time': now.add(const Duration(days: 3, hours: 2)).toIso8601String(),
         'arrival_time':   now.add(const Duration(days: 3, hours: 4, minutes: 15)).toIso8601String(),
         'total_paid': 299,
+        'booked_at': now.toIso8601String(),
         'status': 'confirmed',
         'seat_number': 7,
       },
@@ -37,6 +38,7 @@ class DebugActions {
         'departure_time': now.add(const Duration(days: 14, hours: 3, minutes: 15)).toIso8601String(),
         'arrival_time':   now.add(const Duration(days: 14, hours: 5)).toIso8601String(),
         'total_paid': 199,
+        'booked_at': now.toIso8601String(),
         'status': 'confirmed',
         // seat_number intentionally omitted — defaults to NULL
       },
