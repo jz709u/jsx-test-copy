@@ -10,12 +10,15 @@ class DebugActions {
   final SupabaseClient _db;
   DebugActions(this._db);
 
-  // Wipe dev-user bookings and re-insert the 4 seeded ones with fresh timestamps.
+  // Wipe the 4 seed bookings (by code, not user_id) and re-insert with fresh timestamps.
   Future<void> seedBookings() async {
-    await _db.from('bookings').delete().eq('user_id', _devUserId);
+    // Delete by confirmation_code so we catch any row with these codes regardless
+    // of which user_id they carry — avoids unique-constraint violations on re-insert.
+    await _db.from('bookings').delete().inFilter('confirmation_code', _seedCodes);
 
     final now = DateTime.now().toUtc();
 
+    // Omit null-valued fields entirely so PostgREST uses the column default.
     final rows = [
       {
         'user_id': _devUserId,
@@ -35,7 +38,7 @@ class DebugActions {
         'arrival_time':   now.add(const Duration(days: 14, hours: 5)).toIso8601String(),
         'total_paid': 199,
         'status': 'confirmed',
-        'seat_number': null,
+        // seat_number intentionally omitted — defaults to NULL
       },
       {
         'user_id': _devUserId,
