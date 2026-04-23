@@ -165,6 +165,16 @@ class _DbSectionState extends State<_DbSection> {
               : () => _run('pts', () => a.addLoyaltyPoints(1000)),
         ),
         _ActionRow(
+          id: 'flights',
+          icon: Icons.flight_rounded,
+          label: 'View flights…',
+          subtitle: 'See all scheduled flights with seats & price',
+          loading: _loading,
+          result: _result,
+          disabled: _disabled,
+          onTap: a == null ? null : () => _openFlightsViewer(context, a),
+        ),
+        _ActionRow(
           id: 'status',
           icon: Icons.edit_rounded,
           label: 'Set flight status…',
@@ -188,6 +198,18 @@ class _DbSectionState extends State<_DbSection> {
     );
   }
 
+  void _openFlightsViewer(BuildContext context, DebugActions actions) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _FlightsViewer(actions: actions),
+    );
+  }
+
   void _openFlightStatusPicker(BuildContext context, DebugActions actions) {
     showModalBottomSheet(
       context: context,
@@ -199,6 +221,154 @@ class _DbSectionState extends State<_DbSection> {
       builder: (_) => _FlightStatusPicker(actions: actions),
     );
   }
+}
+
+// ── Flights viewer ────────────────────────────────────────────────────────────
+
+class _FlightsViewer extends StatefulWidget {
+  final DebugActions actions;
+  const _FlightsViewer({required this.actions});
+
+  @override
+  State<_FlightsViewer> createState() => _FlightsViewerState();
+}
+
+class _FlightsViewerState extends State<_FlightsViewer> {
+  late Future<List<Map<String, dynamic>>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = widget.actions.getFlightsFull();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.7,
+      maxChildSize: 0.92,
+      builder: (_, controller) => ListView(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        children: [
+          _Handle(),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _SectionHeader(icon: Icons.flight_rounded, label: 'FLIGHTS'),
+              const Spacer(),
+              GestureDetector(
+                onTap: () => setState(() => _future = widget.actions.getFlightsFull()),
+                child: const Icon(Icons.refresh_rounded, size: 18, color: AppColors.textSecondary),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          FutureBuilder<List<Map<String, dynamic>>>(
+            future: _future,
+            builder: (_, snap) {
+              if (snap.connectionState == ConnectionState.waiting) {
+                return const Center(child: Padding(
+                  padding: EdgeInsets.all(32),
+                  child: CircularProgressIndicator(color: AppColors.gold),
+                ));
+              }
+              if (snap.hasError) {
+                return Text('${snap.error}', style: const TextStyle(color: AppColors.error));
+              }
+              final flights = snap.data!;
+              return Column(
+                children: flights.map((f) => _FlightDetailRow(flight: f)).toList(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FlightDetailRow extends StatelessWidget {
+  final Map<String, dynamic> flight;
+  const _FlightDetailRow({required this.flight});
+
+  @override
+  Widget build(BuildContext context) {
+    final id        = flight['id'] as String;
+    final origin    = flight['origin_code'] as String;
+    final dest      = flight['dest_code'] as String;
+    final depH      = flight['dep_hour'] as int;
+    final depM      = flight['dep_minute'] as int;
+    final durMin    = flight['dur_minutes'] as int;
+    final aircraft  = flight['aircraft'] as String;
+    final total     = flight['total_seats'] as int;
+    final avail     = flight['avail_seats'] as int;
+    final price     = (flight['price'] as num).toDouble();
+    final status    = flight['status'] as String;
+
+    final dep = '${depH.toString().padLeft(2, '0')}:${depM.toString().padLeft(2, '0')}';
+    final arrMin  = depH * 60 + depM + durMin;
+    final arr = '${(arrMin ~/ 60).toString().padLeft(2, '0')}:${(arrMin % 60).toString().padLeft(2, '0')}';
+    final dur = '${durMin ~/ 60}h ${durMin % 60}m';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(id, style: const TextStyle(color: AppColors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+              const Spacer(),
+              _StatusChip(status),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text('$origin → $dest', style: const TextStyle(color: AppColors.gold, fontSize: 14, fontWeight: FontWeight.w600)),
+              const SizedBox(width: 8),
+              Text('$dep – $arr  ($dur)', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              _Chip(icon: Icons.airplanemode_active, label: aircraft),
+              const SizedBox(width: 8),
+              _Chip(
+                icon: Icons.airline_seat_recline_normal,
+                label: '$avail / $total seats',
+                highlight: avail <= 5,
+              ),
+              const SizedBox(width: 8),
+              _Chip(icon: Icons.attach_money, label: '\$${price.toStringAsFixed(0)}'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool highlight;
+  const _Chip({required this.icon, required this.label, this.highlight = false});
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: 12, color: highlight ? AppColors.warning : AppColors.textMuted),
+      const SizedBox(width: 4),
+      Text(label, style: TextStyle(color: highlight ? AppColors.warning : AppColors.textSecondary, fontSize: 11)),
+    ],
+  );
 }
 
 // ── Flight status picker ──────────────────────────────────────────────────────

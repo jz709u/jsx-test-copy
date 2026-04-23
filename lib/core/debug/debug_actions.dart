@@ -128,11 +128,20 @@ class DebugActions {
         .eq('id', flightId);
   }
 
-  // Fetch all flights with their current status.
+  // Fetch all flights with their current status (used by status picker).
   Future<List<Map<String, dynamic>>> getFlights() async {
     final rows = await _db
         .from('flight_schedules')
         .select('id, origin_code, dest_code, status')
+        .order('id');
+    return List<Map<String, dynamic>>.from(rows);
+  }
+
+  // Fetch all flights with full detail (used by the flights viewer).
+  Future<List<Map<String, dynamic>>> getFlightsFull() async {
+    final rows = await _db
+        .from('flight_schedules')
+        .select('id, origin_code, dest_code, dep_hour, dep_minute, dur_minutes, aircraft, total_seats, avail_seats, price, status')
         .order('id');
     return List<Map<String, dynamic>>.from(rows);
   }
