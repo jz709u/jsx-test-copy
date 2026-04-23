@@ -88,10 +88,11 @@ class _DbSectionState extends State<_DbSection> {
     });
     try {
       await action();
-      if (mounted)
+      if (mounted) {
         setState(() {
           _result[id] = true;
         });
+      }
     } catch (e) {
       if (mounted) {
         setState(() {

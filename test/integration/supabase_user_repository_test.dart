@@ -1,5 +1,6 @@
 /// Requires local Supabase: supabase start
 /// Run: flutter test test/integration/supabase_user_repository_test.dart
+library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
