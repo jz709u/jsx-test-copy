@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/jsx_text.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/user.dart';
 import '../providers/user_provider.dart';
 
@@ -136,13 +136,10 @@ class _ClubJsxCard extends StatelessWidget {
   const _ClubJsxCard({required this.user});
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => JsxGradientCard(
+        colors: const [Color(0xFF252010), Color(0xFF1A1B25)],
+        radius: 20,
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF252010), Color(0xFF1A1B25)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.gold.withValues(alpha: 0.25)),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

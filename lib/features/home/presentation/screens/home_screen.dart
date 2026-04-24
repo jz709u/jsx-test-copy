@@ -148,13 +148,11 @@ class _NextFlightCard extends StatelessWidget {
     final daysLeft = diff.inDays;
     final hoursLeft = diff.inHours.remainder(24);
 
-    return Container(
+    return JsxGradientCard(
+      colors: const [Color(0xFF2A1F00), Color(0xFF1A1B25)],
+      borderAlpha: 0.3,
+      radius: 20,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF2A1F00), Color(0xFF1A1B25)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -220,13 +218,12 @@ class _LoyaltyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return JsxGradientCard(
+      colors: const [Color(0xFF1A2040), Color(0xFF0D1220)],
+      borderColor: Colors.white,
+      borderAlpha: 0.08,
+      radius: 20,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF1A2040), Color(0xFF0D1220)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

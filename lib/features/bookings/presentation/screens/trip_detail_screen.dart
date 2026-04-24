@@ -36,17 +36,17 @@ class TripDetailScreen extends StatelessWidget {
                     JsxCard(
                       child: Column(
                         children: [
-                          _Row('Flight', booking.flight.id),
-                          _Row('Aircraft', booking.flight.aircraft),
-                          _Row('Date',
+                          JsxDetailRow('Flight', booking.flight.id),
+                          JsxDetailRow('Aircraft', booking.flight.aircraft),
+                          JsxDetailRow('Date',
                               DateFormat('EEEE, MMMM d, yyyy').format(booking.flight.departureTime)),
-                          _Row('Departure',
+                          JsxDetailRow('Departure',
                               DateFormat('h:mm a').format(booking.flight.departureTime)),
-                          _Row('Arrival',
+                          JsxDetailRow('Arrival',
                               DateFormat('h:mm a').format(booking.flight.arrivalTime)),
-                          _Row('Duration', booking.flight.durationString),
+                          JsxDetailRow('Duration', booking.flight.durationString),
                           if (booking.seatNumber != null)
-                            _Row('Seat', '${booking.seatNumber}'),
+                            JsxDetailRow('Seat', '${booking.seatNumber}'),
                         ],
                       ),
                     ),
@@ -85,9 +85,9 @@ class TripDetailScreen extends StatelessWidget {
                     JsxCard(
                       child: Column(
                         children: [
-                          _Row('Total Paid',
+                          JsxDetailRow('Total Paid',
                               '\$${booking.totalPaid.toStringAsFixed(0)}'),
-                          _Row('Booked On',
+                          JsxDetailRow('Booked On',
                               DateFormat('MMM d, yyyy').format(booking.bookedAt)),
                         ],
                       ),
@@ -107,22 +107,10 @@ class _BoardingPassCard extends StatelessWidget {
   const _BoardingPassCard({required this.booking});
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => JsxGradientCard(
         margin: const EdgeInsets.all(AppSpacing.screenPadding),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFF1A2040), Color(0xFF0D1530)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(AppRadius.sheet),
-          border: Border.all(color: AppColors.gold.withValues(alpha: 0.25)),
-          boxShadow: [
-            BoxShadow(
-                color: AppColors.gold.withValues(alpha: 0.08),
-                blurRadius: 20,
-                offset: const Offset(0, 8))
-          ],
-        ),
+        padding: EdgeInsets.zero,
+        glow: true,
         child: Column(
           children: [
             Padding(
@@ -327,20 +315,3 @@ class _TrackFlightButton extends StatelessWidget {
       );
 }
 
-class _Row extends StatelessWidget {
-  final String label;
-  final String value;
-  const _Row(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            JsxText(label, JsxTextVariant.bodyMedium),
-            JsxText(value, JsxTextVariant.titleSmall),
-          ],
-        ),
-      );
-}

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/jsx_text.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/flight.dart';
 import '../../domain/entities/flight_track.dart';
 import '../../services/live_activity_service.dart';
@@ -169,17 +169,11 @@ class _FlightPathCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return JsxGradientCard(
+      colors: const [Color(0xFF0D1530), Color(0xFF1A2040)],
+      borderAlpha: 0.2,
+      radius: 20,
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0D1530), Color(0xFF1A2040)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.2)),
-      ),
       child: Column(
         children: [
           Row(
@@ -542,30 +536,13 @@ class _FlightInfoCard extends StatelessWidget {
         children: [
           const JsxText('FLIGHT INFO', JsxTextVariant.caption, letterSpacing: 1.2),
           const SizedBox(height: 12),
-          _InfoRow('Aircraft', flight.aircraft),
-          _InfoRow('Origin', '${flight.origin.name} (${flight.origin.code})'),
-          _InfoRow('Destination', '${flight.destination.name} (${flight.destination.code})'),
-          _InfoRow('Seats', '${flight.availableSeats} of ${flight.totalSeats} available'),
+          JsxDetailRow('Aircraft', flight.aircraft, labelVariant: JsxTextVariant.titleSmall, labelColor: AppColors.textSecondary, valueFlexible: true),
+          JsxDetailRow('Origin', '${flight.origin.name} (${flight.origin.code})', labelVariant: JsxTextVariant.titleSmall, labelColor: AppColors.textSecondary, valueFlexible: true),
+          JsxDetailRow('Destination', '${flight.destination.name} (${flight.destination.code})', labelVariant: JsxTextVariant.titleSmall, labelColor: AppColors.textSecondary, valueFlexible: true),
+          JsxDetailRow('Seats', '${flight.availableSeats} of ${flight.totalSeats} available', labelVariant: JsxTextVariant.titleSmall, labelColor: AppColors.textSecondary, valueFlexible: true),
         ],
       ),
     ).animate().fadeIn(delay: 300.ms, duration: 300.ms);
   }
 }
 
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
-  const _InfoRow(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            JsxText(label, JsxTextVariant.titleSmall, color: AppColors.textSecondary),
-            Flexible(child: JsxText(value, JsxTextVariant.titleSmall, textAlign: TextAlign.end)),
-          ],
-        ),
-      );
-}

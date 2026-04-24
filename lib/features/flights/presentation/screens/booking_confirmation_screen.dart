@@ -38,12 +38,12 @@ class BookingConfirmationScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.lg),
                   const Divider(color: AppColors.divider),
                   const SizedBox(height: AppSpacing.itemGap),
-                  _Row('Flight', flight.id),
-                  _Row('Aircraft', flight.aircraft),
-                  _Row('Date', DateFormat('EEEE, MMMM d, yyyy').format(flight.departureTime)),
-                  _Row('Departure', DateFormat('h:mm a').format(flight.departureTime)),
-                  _Row('Arrival', DateFormat('h:mm a').format(flight.arrivalTime)),
-                  _Row('Duration', flight.durationString),
+                  JsxDetailRow('Flight', flight.id),
+                  JsxDetailRow('Aircraft', flight.aircraft),
+                  JsxDetailRow('Date', DateFormat('EEEE, MMMM d, yyyy').format(flight.departureTime)),
+                  JsxDetailRow('Departure', DateFormat('h:mm a').format(flight.departureTime)),
+                  JsxDetailRow('Arrival', DateFormat('h:mm a').format(flight.arrivalTime)),
+                  JsxDetailRow('Duration', flight.durationString),
                 ],
               ),
             ),
@@ -86,8 +86,8 @@ class BookingConfirmationScreen extends ConsumerWidget {
             JsxCard(
               child: Column(
                 children: [
-                  _Row('Base fare × $passengers', '\$${(flight.price * passengers).toStringAsFixed(0)}'),
-                  _Row('Taxes & fees', '\$0'),
+                  JsxDetailRow('Base fare × $passengers', '\$${(flight.price * passengers).toStringAsFixed(0)}'),
+                  JsxDetailRow('Taxes & fees', '\$0'),
                   const Divider(color: AppColors.divider),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -149,24 +149,6 @@ class BookingConfirmationScreen extends ConsumerWidget {
       ),
     );
   }
-}
-
-class _Row extends StatelessWidget {
-  final String label;
-  final String value;
-  const _Row(this.label, this.value);
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            JsxText(label, JsxTextVariant.bodyMedium),
-            JsxText(value, JsxTextVariant.titleSmall),
-          ],
-        ),
-      );
 }
 
 class _SuccessScreen extends StatelessWidget {
