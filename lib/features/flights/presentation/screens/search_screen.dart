@@ -276,7 +276,7 @@ class _FieldRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+                    JsxText(label, JsxTextVariant.labelSmall),
                     const SizedBox(height: 2),
                     Text(
                       value,
@@ -328,8 +328,8 @@ class _AirportPicker extends StatelessWidget {
                 decoration: BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.circular(10)),
                 child: Center(child: Text(a.code, style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w800))),
               ),
-              title: Text(a.city, style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w600)),
-              subtitle: Text(a.name, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              title: JsxText(a.city, JsxTextVariant.titleMedium),
+              subtitle: JsxText(a.name, JsxTextVariant.bodySmall),
               trailing: const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.textMuted),
             )),
         const SizedBox(height: 20),
@@ -375,7 +375,7 @@ class _PassengerPickerState extends State<_PassengerPicker> {
               ],
             ),
             const SizedBox(height: 8),
-            const Text('Max 8 passengers', style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+            const JsxText('Max 8 passengers', JsxTextVariant.bodySmall),
             const SizedBox(height: 32),
             ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('Done')),
           ],
@@ -423,8 +423,8 @@ class _PopularRouteRow extends StatelessWidget {
             decoration: BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.circular(10)),
             child: Center(child: Text(airport.code, style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w800))),
           ),
-          title: Text(airport.city, style: const TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-          subtitle: Text(airport.name, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+          title: JsxText(airport.city, JsxTextVariant.titleMedium),
+          subtitle: JsxText(airport.name, JsxTextVariant.labelSmall),
           trailing: const Icon(Icons.north_east, color: AppColors.textMuted, size: 16),
         ),
       );

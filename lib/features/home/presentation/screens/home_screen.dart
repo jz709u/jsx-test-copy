@@ -74,14 +74,10 @@ class _HomeBody extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Good ${_greeting()}, ${user.firstName}',
-                  style: const TextStyle(color: AppColors.white, fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: -0.3),
-                ),
-                Text(
-                  DateFormat('EEEE, MMMM d').format(DateTime.now()),
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w400),
-                ),
+                JsxText('Good ${_greeting()}, ${user.firstName}',
+                    JsxTextVariant.headlineLarge),
+                JsxText(DateFormat('EEEE, MMMM d').format(DateTime.now()),
+                    JsxTextVariant.labelMedium),
               ],
             ),
           ),
@@ -270,7 +266,7 @@ class _LoyaltyCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text('${1000 - (user.loyaltyPoints % 1000)} points to next reward', style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+          JsxText('${1000 - (user.loyaltyPoints % 1000)} points to next reward', JsxTextVariant.labelSmall),
         ],
       ),
     );

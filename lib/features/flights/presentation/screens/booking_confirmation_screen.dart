@@ -146,9 +146,9 @@ class BookingConfirmationScreen extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.itemGap),
             const Center(
-              child: Text(
+              child: JsxText(
                 'No change fees · Free cancellation 24h before flight',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                JsxTextVariant.bodySmall,
                 textAlign: TextAlign.center,
               ),
             ),
