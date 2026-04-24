@@ -60,17 +60,7 @@ class TripDetailScreen extends StatelessWidget {
                                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                                   child: Row(
                                     children: [
-                                      Container(
-                                        width: 32,
-                                        height: 32,
-                                        decoration: BoxDecoration(
-                                            color: AppColors.gold.withValues(alpha: 0.15),
-                                            shape: BoxShape.circle),
-                                        child: Center(
-                                          child: JsxText(p.initials,
-                                              JsxTextVariant.labelSmall, color: AppColors.gold),
-                                        ),
-                                      ),
+                                      JsxAvatar(label: p.initials, variant: JsxTextVariant.labelSmall),
                                       const SizedBox(width: AppSpacing.itemGap),
                                       JsxText(p.fullName, JsxTextVariant.bodyLarge),
                                     ],

@@ -55,30 +55,30 @@ class _ProfileBody extends StatelessWidget {
                   const SizedBox(height: 24),
                   const _SectionLabel('Travel Preferences'),
                   const SizedBox(height: 10),
-                  _SettingsGroup(items: [
-                    _SettingsItem(icon: Icons.airline_seat_recline_normal, label: 'Preferred Seat', value: user.preferredSeat, onTap: () {}),
-                    _SettingsItem(icon: Icons.badge_outlined, label: 'Known Traveler Number', value: user.knownTravelerNumber ?? 'Not set', onTap: () {}),
-                    _SettingsItem(icon: Icons.notifications_outlined, label: 'Flight Alerts', value: 'Push & Email', onTap: () {}),
+                  JsxListGroup(items: [
+                    JsxListItem(icon: Icons.airline_seat_recline_normal, label: 'Preferred Seat', value: user.preferredSeat, onTap: () {}),
+                    JsxListItem(icon: Icons.badge_outlined, label: 'Known Traveler Number', value: user.knownTravelerNumber ?? 'Not set', onTap: () {}),
+                    JsxListItem(icon: Icons.notifications_outlined, label: 'Flight Alerts', value: 'Push & Email', onTap: () {}),
                   ]),
                   const SizedBox(height: 24),
                   const _SectionLabel('Account'),
                   const SizedBox(height: 10),
-                  _SettingsGroup(items: [
-                    _SettingsItem(icon: Icons.person_outline, label: 'Personal Info', value: user.email, onTap: () {}),
-                    _SettingsItem(icon: Icons.credit_card_outlined, label: 'Payment Methods', value: 'Visa •••• 4821', onTap: () {}),
-                    _SettingsItem(icon: Icons.lock_outline, label: 'Security', onTap: () {}),
+                  JsxListGroup(items: [
+                    JsxListItem(icon: Icons.person_outline, label: 'Personal Info', value: user.email, onTap: () {}),
+                    JsxListItem(icon: Icons.credit_card_outlined, label: 'Payment Methods', value: 'Visa •••• 4821', onTap: () {}),
+                    JsxListItem(icon: Icons.lock_outline, label: 'Security', onTap: () {}),
                   ]),
                   const SizedBox(height: 24),
                   const _SectionLabel('Support'),
                   const SizedBox(height: 10),
-                  _SettingsGroup(items: [
-                    _SettingsItem(icon: Icons.help_outline, label: 'Help Center', onTap: () {}),
-                    _SettingsItem(icon: Icons.chat_bubble_outline, label: 'Contact JSX', onTap: () {}),
-                    _SettingsItem(icon: Icons.star_outline, label: 'Rate the App', onTap: () {}),
+                  JsxListGroup(items: [
+                    JsxListItem(icon: Icons.help_outline, label: 'Help Center', onTap: () {}),
+                    JsxListItem(icon: Icons.chat_bubble_outline, label: 'Contact JSX', onTap: () {}),
+                    JsxListItem(icon: Icons.star_outline, label: 'Rate the App', onTap: () {}),
                   ]),
                   const SizedBox(height: 24),
-                  _SettingsGroup(items: [
-                    _SettingsItem(icon: Icons.logout, label: 'Sign Out', labelColor: AppColors.error, onTap: () {}, showChevron: false),
+                  JsxListGroup(items: [
+                    JsxListItem(icon: Icons.logout, label: 'Sign Out', labelColor: AppColors.error, onTap: () {}, showChevron: false),
                   ]),
                   const SizedBox(height: 32),
                   const Center(child: JsxText('JSX: How I Fly v1.0.0', JsxTextVariant.bodySmall)),
@@ -106,11 +106,13 @@ class _ProfileHeader extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(color: AppColors.gold, shape: BoxShape.circle, border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 3)),
-                  child: Center(child: JsxText(user.initials, JsxTextVariant.headlineLarge, color: AppColors.background)),
+                JsxAvatar(
+                  label: user.initials,
+                  size: 72,
+                  variant: JsxTextVariant.headlineLarge,
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.background,
+                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 3),
                 ),
                 const SizedBox(height: 10),
                 JsxText(user.fullName, JsxTextVariant.headlineLarge),
@@ -150,9 +152,9 @@ class _ClubJsxCard extends StatelessWidget {
             const SizedBox(height: 20),
             Row(
               children: [
-                Expanded(child: _Stat(value: '\$${user.creditBalance.toStringAsFixed(0)}', label: 'Available Credit', highlight: true)),
+                Expanded(child: JsxStatDisplay(value: '\$${user.creditBalance.toStringAsFixed(0)}', label: 'Available Credit', valueColor: AppColors.gold)),
                 Container(width: 1, height: 48, color: AppColors.divider),
-                Expanded(child: _Stat(value: user.loyaltyPoints.toString(), label: 'Total Points')),
+                Expanded(child: JsxStatDisplay(value: user.loyaltyPoints.toString(), label: 'Total Points')),
               ],
             ),
             const SizedBox(height: 16),
@@ -172,22 +174,6 @@ class _ClubJsxCard extends StatelessWidget {
       );
 }
 
-class _Stat extends StatelessWidget {
-  final String value;
-  final String label;
-  final bool highlight;
-  const _Stat({required this.value, required this.label, this.highlight = false});
-
-  @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          JsxText(value, JsxTextVariant.headlineLarge, color: highlight ? AppColors.gold : AppColors.white),
-          const SizedBox(height: 2),
-          JsxText(label, JsxTextVariant.labelSmall, textAlign: TextAlign.center),
-        ],
-      );
-}
-
 class _SectionLabel extends StatelessWidget {
   final String label;
   const _SectionLabel(this.label);
@@ -199,59 +185,3 @@ class _SectionLabel extends StatelessWidget {
       );
 }
 
-class _SettingsGroup extends StatelessWidget {
-  final List<_SettingsItem> items;
-  const _SettingsGroup({required this.items});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-        child: Column(
-          children: items.asMap().entries.map((e) {
-            final isLast = e.key == items.length - 1;
-            return Column(children: [e.value, if (!isLast) const Divider(height: 1, indent: 52)]);
-          }).toList(),
-        ),
-      );
-}
-
-class _SettingsItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String? value;
-  final Color? labelColor;
-  final VoidCallback onTap;
-  final bool showChevron;
-
-  const _SettingsItem({required this.icon, required this.label, this.value, this.labelColor, required this.onTap, this.showChevron = true});
-
-  @override
-  Widget build(BuildContext context) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(color: AppColors.surfaceElevated, borderRadius: BorderRadius.circular(8)),
-                child: Icon(icon, size: 16, color: labelColor ?? AppColors.gold),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    JsxText(label, JsxTextVariant.titleMedium, color: labelColor),
-                    if (value != null) ...[const SizedBox(height: 1), JsxText(value!, JsxTextVariant.bodySmall)],
-                  ],
-                ),
-              ),
-              if (showChevron) const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
-            ],
-          ),
-        ),
-      );
-}

@@ -79,13 +79,12 @@ class _HomeBody extends StatelessWidget {
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 16),
-              child: Container(
-                width: 38,
-                height: 38,
-                decoration: const BoxDecoration(color: AppColors.gold, shape: BoxShape.circle),
-                child: Center(
-                  child: JsxText(user.initials, JsxTextVariant.titleMedium, color: AppColors.background),
-                ),
+              child: JsxAvatar(
+                label: user.initials,
+                size: 38,
+                variant: JsxTextVariant.titleMedium,
+                backgroundColor: AppColors.gold,
+                foregroundColor: AppColors.background,
               ),
             ),
           ],
@@ -236,11 +235,11 @@ class _LoyaltyCard extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _LoyaltyStat(value: '\$${user.creditBalance.toStringAsFixed(0)}', label: 'JSX Credit')),
+              Expanded(child: JsxStatDisplay(value: '\$${user.creditBalance.toStringAsFixed(0)}', label: 'JSX Credit')),
               Container(width: 1, height: 40, color: AppColors.divider),
-              Expanded(child: _LoyaltyStat(value: user.loyaltyPoints.toString(), label: 'Points Earned')),
+              Expanded(child: JsxStatDisplay(value: user.loyaltyPoints.toString(), label: 'Points Earned')),
               Container(width: 1, height: 40, color: AppColors.divider),
-              const Expanded(child: _LoyaltyStat(value: '5%', label: 'Back on Flights')),
+              const Expanded(child: JsxStatDisplay(value: '5%', label: 'Back on Flights')),
             ],
           ),
           const SizedBox(height: 16),
@@ -259,21 +258,6 @@ class _LoyaltyCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _LoyaltyStat extends StatelessWidget {
-  final String value;
-  final String label;
-  const _LoyaltyStat({required this.value, required this.label});
-
-  @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          JsxText(value, JsxTextVariant.headlineLarge),
-          const SizedBox(height: 2),
-          JsxText(label, JsxTextVariant.caption, textAlign: TextAlign.center),
-        ],
-      );
 }
 
 class _PopularRoutesGrid extends StatelessWidget {

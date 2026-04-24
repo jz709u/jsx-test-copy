@@ -58,17 +58,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
                     padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child: Row(
                       children: [
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                              color: AppColors.gold.withValues(alpha: 0.15),
-                              shape: BoxShape.circle),
-                          child: Center(
-                            child: JsxText('${i + 1}',
-                                JsxTextVariant.titleSmall, color: AppColors.gold),
-                          ),
-                        ),
+                        JsxAvatar(label: '${i + 1}'),
                         const SizedBox(width: AppSpacing.itemGap),
                         JsxText(
                           i == 0 ? 'Alex Rivera (You)' : 'Passenger ${i + 1}',
