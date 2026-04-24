@@ -3,11 +3,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../bookings/domain/entities/booking.dart';
 import '../../../bookings/presentation/providers/bookings_provider.dart';
 import '../../../flights/presentation/providers/flight_realtime_provider.dart';
 import '../../../flights/presentation/widgets/flight_route_display.dart';
-import '../../../flights/presentation/widgets/status_badge.dart';
 import '../../../user/domain/entities/user.dart';
 import '../../../user/presentation/providers/user_provider.dart';
 
@@ -166,7 +166,7 @@ class _NextFlightCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('NEXT FLIGHT', style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
-              StatusBadge(status: booking.flight.status),
+              JsxBadge.flightStatus(booking.flight.status),
             ],
           ),
           const SizedBox(height: 20),

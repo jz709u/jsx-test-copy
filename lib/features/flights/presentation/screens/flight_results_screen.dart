@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/flight.dart';
 import '../providers/flight_results_provider.dart';
 import '../widgets/flight_route_display.dart';
-import '../widgets/status_badge.dart';
 import 'booking_confirmation_screen.dart';
 
 class FlightResultsScreen extends ConsumerWidget {
@@ -37,9 +37,9 @@ class FlightResultsScreen extends ConsumerWidget {
         data: (results) => results.isEmpty
             ? _EmptyResults(fromCode: params.fromCode, toCode: params.toCode)
             : ListView.separated(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.screenPadding),
                 itemCount: results.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.itemGap),
                 itemBuilder: (_, i) => _FlightResultCard(
                   flight: results[i],
                   passengers: passengers,
@@ -66,58 +66,55 @@ class _FlightResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalPrice = flight.price * passengers;
-    return GestureDetector(
+    return JsxCard(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: flight.isAlmostFull ? AppColors.warning.withValues(alpha: 0.3) : AppColors.divider,
-            width: flight.isAlmostFull ? 1.5 : 1,
+      padding: const EdgeInsets.all(18),
+      borderColor: flight.isAlmostFull
+          ? AppColors.warning.withValues(alpha: 0.3)
+          : AppColors.divider,
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(flight.id, style: AppTextStyles.labelSmall),
+              JsxBadge.flightStatus(flight.status),
+            ],
           ),
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(flight.id, style: const TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w600)),
-                StatusBadge(status: flight.status),
-              ],
-            ),
-            const SizedBox(height: 16),
-            FlightRouteDisplay(flight: flight),
-            const SizedBox(height: 16),
-            const Divider(color: AppColors.divider),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(flight.aircraft, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                    const SizedBox(height: 2),
-                    if (flight.isAlmostFull)
-                      Text('Only ${flight.availableSeats} seats left!', style: const TextStyle(color: AppColors.warning, fontSize: 11, fontWeight: FontWeight.w600))
-                    else
-                      Text('${flight.availableSeats} seats available', style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text('\$${totalPrice.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.white, fontSize: 22, fontWeight: FontWeight.w800)),
-                    if (passengers > 1)
-                      Text('\$${flight.price.toStringAsFixed(0)}/person', style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
+          const SizedBox(height: AppSpacing.lg),
+          FlightRouteDisplay(flight: flight),
+          const SizedBox(height: AppSpacing.lg),
+          const Divider(color: AppColors.divider),
+          const SizedBox(height: AppSpacing.itemGap),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(flight.aircraft, style: AppTextStyles.bodySmall),
+                  const SizedBox(height: 2),
+                  if (flight.isAlmostFull)
+                    Text('Only ${flight.availableSeats} seats left!',
+                        style: const TextStyle(color: AppColors.warning, fontSize: 11, fontWeight: FontWeight.w600))
+                  else
+                    Text('${flight.availableSeats} seats available',
+                        style: AppTextStyles.labelSmall),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('\$${totalPrice.toStringAsFixed(0)}',
+                      style: const TextStyle(color: AppColors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+                  if (passengers > 1)
+                    Text('\$${flight.price.toStringAsFixed(0)}/person',
+                        style: AppTextStyles.labelSmall),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -131,20 +128,23 @@ class _EmptyResults extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Center(
         child: Padding(
-          padding: const EdgeInsets.all(40),
+          padding: const EdgeInsets.all(AppSpacing.x4l),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.flight_rounded, color: AppColors.textMuted, size: 64),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.lg),
               Text('No flights found', style: Theme.of(context).textTheme.headlineMedium),
-              const SizedBox(height: 8),
-              Text('$fromCode to $toCode is not currently a JSX route.', textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textSecondary)),
-              const SizedBox(height: 24),
-              OutlinedButton(
+              const SizedBox(height: AppSpacing.sm),
+              Text('$fromCode to $toCode is not currently a JSX route.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.bodyMedium),
+              const SizedBox(height: AppSpacing.xxl),
+              JsxButton(
+                label: 'Try Another Route',
+                variant: JsxButtonVariant.secondary,
+                fullWidth: false,
                 onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(foregroundColor: AppColors.gold, side: const BorderSide(color: AppColors.gold)),
-                child: const Text('Try Another Route'),
               ),
             ],
           ),

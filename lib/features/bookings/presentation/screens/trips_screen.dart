@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/booking.dart';
 import '../providers/bookings_provider.dart';
 import '../../../flights/presentation/widgets/flight_route_display.dart';
@@ -111,9 +112,9 @@ class _TripList extends StatelessWidget {
       color: AppColors.gold,
       backgroundColor: AppColors.surface,
       child: ListView.separated(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.screenPadding),
         itemCount: bookings.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.itemGap),
         itemBuilder: (_, i) => _BookingCard(booking: bookings[i]),
       ),
     );
@@ -125,127 +126,76 @@ class _BookingCard extends StatelessWidget {
   const _BookingCard({required this.booking});
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
+  Widget build(BuildContext context) => JsxCard(
         onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (_) => TripDetailScreen(booking: booking))),
-        child: Container(
-          decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16)),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                            DateFormat('EEE, MMM d, yyyy')
-                                .format(booking.flight.departureTime),
-                            style: const TextStyle(
-                                color: AppColors.textSecondary, fontSize: 12)),
-                        _BookingStatusBadge(status: booking.status),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    FlightRouteDisplay(flight: booking.flight, compact: true),
-                  ],
-                ),
+        padding: EdgeInsets.zero,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                          DateFormat('EEE, MMM d, yyyy')
+                              .format(booking.flight.departureTime),
+                          style: AppTextStyles.bodySmall),
+                      JsxBadge.bookingStatus(booking.status),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  FlightRouteDisplay(flight: booking.flight, compact: true),
+                ],
               ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                decoration: const BoxDecoration(
-                    color: AppColors.surfaceElevated,
-                    borderRadius:
-                        BorderRadius.vertical(bottom: Radius.circular(16))),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.confirmation_number_outlined,
-                            size: 13, color: AppColors.textMuted),
-                        const SizedBox(width: 6),
-                        Text(booking.confirmationCode,
-                            style: const TextStyle(
-                                color: AppColors.gold,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1)),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Icon(Icons.people_outline,
-                            size: 13, color: AppColors.textMuted),
-                        const SizedBox(width: 4),
-                        Text('${booking.passengers.length} pax',
-                            style: const TextStyle(
-                                color: AppColors.textSecondary, fontSize: 12)),
-                        const SizedBox(width: 16),
-                        Text('\$${booking.totalPaid.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                                color: AppColors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600)),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.arrow_forward_ios,
-                            size: 11, color: AppColors.textMuted),
-                      ],
-                    ),
-                  ],
-                ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 18, vertical: AppSpacing.itemGap),
+              decoration: const BoxDecoration(
+                  color: AppColors.surfaceElevated,
+                  borderRadius:
+                      BorderRadius.vertical(bottom: Radius.circular(AppRadius.card))),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.confirmation_number_outlined,
+                          size: 13, color: AppColors.textMuted),
+                      const SizedBox(width: 6),
+                      Text(booking.confirmationCode,
+                          style: const TextStyle(
+                              color: AppColors.gold,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Icon(Icons.people_outline,
+                          size: 13, color: AppColors.textMuted),
+                      const SizedBox(width: 4),
+                      Text('${booking.passengers.length} pax',
+                          style: AppTextStyles.bodySmall),
+                      const SizedBox(width: AppSpacing.lg),
+                      Text('\$${booking.totalPaid.toStringAsFixed(0)}',
+                          style: AppTextStyles.titleSmall),
+                      const SizedBox(width: AppSpacing.sm),
+                      const Icon(Icons.arrow_forward_ios,
+                          size: 11, color: AppColors.textMuted),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
-}
-
-class _BookingStatusBadge extends StatelessWidget {
-  final BookingStatus status;
-  const _BookingStatusBadge({required this.status});
-
-  Color get _color {
-    switch (status) {
-      case BookingStatus.confirmed:
-        return AppColors.success;
-      case BookingStatus.checkedIn:
-        return AppColors.gold;
-      case BookingStatus.cancelled:
-        return AppColors.error;
-      case BookingStatus.completed:
-        return AppColors.textSecondary;
-    }
-  }
-
-  String get _label {
-    switch (status) {
-      case BookingStatus.confirmed:
-        return 'Confirmed';
-      case BookingStatus.checkedIn:
-        return 'Checked In';
-      case BookingStatus.cancelled:
-        return 'Cancelled';
-      case BookingStatus.completed:
-        return 'Completed';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-            color: _color.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(6)),
-        child: Text(_label,
-            style: TextStyle(
-                color: _color, fontSize: 11, fontWeight: FontWeight.w600)),
       );
 }
 
@@ -262,11 +212,11 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 64, color: AppColors.textMuted),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
             Text(title, style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.sm),
             Text(subtitle,
-                style: const TextStyle(color: AppColors.textSecondary),
+                style: AppTextStyles.bodyMedium,
                 textAlign: TextAlign.center),
           ],
         ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/flight.dart';
 import '../../../bookings/presentation/providers/booking_creation_provider.dart';
 import '../widgets/flight_route_display.dart';
@@ -24,92 +25,126 @@ class BookingConfirmationScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Review & Book')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.screenPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Flight Details', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 12),
-            _InfoCard(children: [
-              FlightRouteDisplay(flight: flight),
-              const SizedBox(height: 16),
-              const Divider(color: AppColors.divider),
-              const SizedBox(height: 12),
-              _Row('Flight', flight.id),
-              _Row('Aircraft', flight.aircraft),
-              _Row('Date', DateFormat('EEEE, MMMM d, yyyy').format(flight.departureTime)),
-              _Row('Departure', DateFormat('h:mm a').format(flight.departureTime)),
-              _Row('Arrival', DateFormat('h:mm a').format(flight.arrivalTime)),
-              _Row('Duration', flight.durationString),
-            ]),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.itemGap),
+            JsxCard(
+              child: Column(
+                children: [
+                  FlightRouteDisplay(flight: flight),
+                  const SizedBox(height: AppSpacing.lg),
+                  const Divider(color: AppColors.divider),
+                  const SizedBox(height: AppSpacing.itemGap),
+                  _Row('Flight', flight.id),
+                  _Row('Aircraft', flight.aircraft),
+                  _Row('Date', DateFormat('EEEE, MMMM d, yyyy').format(flight.departureTime)),
+                  _Row('Departure', DateFormat('h:mm a').format(flight.departureTime)),
+                  _Row('Arrival', DateFormat('h:mm a').format(flight.arrivalTime)),
+                  _Row('Duration', flight.durationString),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
             Text('Passengers', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 12),
-            _InfoCard(
-              children: List.generate(
-                passengers,
-                (i) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(color: AppColors.gold.withValues(alpha: 0.15), shape: BoxShape.circle),
-                        child: Center(child: Text('${i + 1}', style: const TextStyle(color: AppColors.gold, fontSize: 13, fontWeight: FontWeight.w700))),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(i == 0 ? 'Alex Rivera (You)' : 'Passenger ${i + 1}', style: const TextStyle(color: AppColors.white, fontSize: 14, fontWeight: FontWeight.w500)),
-                    ],
+            const SizedBox(height: AppSpacing.itemGap),
+            JsxCard(
+              child: Column(
+                children: List.generate(
+                  passengers,
+                  (i) => Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                              color: AppColors.gold.withValues(alpha: 0.15),
+                              shape: BoxShape.circle),
+                          child: Center(
+                            child: Text('${i + 1}',
+                                style: const TextStyle(
+                                    color: AppColors.gold,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.itemGap),
+                        Text(
+                          i == 0 ? 'Alex Rivera (You)' : 'Passenger ${i + 1}',
+                          style: AppTextStyles.titleMedium,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
             Text('Price Summary', style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 12),
-            _InfoCard(children: [
-              _Row('Base fare × $passengers', '\$${(flight.price * passengers).toStringAsFixed(0)}'),
-              _Row('Taxes & fees', '\$0'),
-              const Divider(color: AppColors.divider),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            const SizedBox(height: AppSpacing.itemGap),
+            JsxCard(
+              child: Column(
                 children: [
-                  const Text('Total', style: TextStyle(color: AppColors.white, fontSize: 16, fontWeight: FontWeight.w700)),
-                  Text('\$${total.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.gold, fontSize: 20, fontWeight: FontWeight.w800)),
+                  _Row('Base fare × $passengers', '\$${(flight.price * passengers).toStringAsFixed(0)}'),
+                  _Row('Taxes & fees', '\$0'),
+                  const Divider(color: AppColors.divider),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Total', style: Theme.of(context).textTheme.titleLarge),
+                      Text('\$${total.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                              color: AppColors.gold,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800)),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.itemGap),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.itemGap),
+                    decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(AppRadius.chip)),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.stars_rounded, color: AppColors.gold, size: 16),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          "You'll earn \$${(total * 0.05).toStringAsFixed(2)} Club JSX credit",
+                          style: const TextStyle(
+                              color: AppColors.gold,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.gold.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(10)),
-                child: Row(
-                  children: [
-                    const Icon(Icons.stars_rounded, color: AppColors.gold, size: 16),
-                    const SizedBox(width: 8),
-                    Text("You'll earn \$${(total * 0.05).toStringAsFixed(2)} Club JSX credit", style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w600)),
-                  ],
-                ),
-              ),
-            ]),
-            const SizedBox(height: 32),
+            ),
+            const SizedBox(height: AppSpacing.x3l),
             if (bookingState.status == BookingCreationStatus.failure) ...[
               Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-                child: Text(bookingState.errorMessage ?? 'Something went wrong', style: const TextStyle(color: AppColors.error)),
+                margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                padding: const EdgeInsets.all(AppSpacing.itemGap),
+                decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.chip)),
+                child: Text(bookingState.errorMessage ?? 'Something went wrong',
+                    style: const TextStyle(color: AppColors.error)),
               ),
             ],
-            ElevatedButton(
-              onPressed: bookingState.status == BookingCreationStatus.loading
-                  ? null
-                  : () => ref.read(bookingCreationProvider.notifier).confirm(flight, passengers),
-              child: bookingState.status == BookingCreationStatus.loading
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.background))
-                  : const Text('Confirm Booking'),
+            JsxButton(
+              label: 'Confirm Booking',
+              loading: bookingState.status == BookingCreationStatus.loading,
+              onPressed: () =>
+                  ref.read(bookingCreationProvider.notifier).confirm(flight, passengers),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.itemGap),
             const Center(
               child: Text(
                 'No change fees · Free cancellation 24h before flight',
@@ -117,24 +152,12 @@ class BookingConfirmationScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.x3l),
           ],
         ),
       ),
     );
   }
-}
-
-class _InfoCard extends StatelessWidget {
-  final List<Widget> children;
-  const _InfoCard({required this.children});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-        child: Column(children: children),
-      );
 }
 
 class _Row extends StatelessWidget {
@@ -148,8 +171,8 @@ class _Row extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-            Text(value, style: const TextStyle(color: AppColors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+            Text(label, style: AppTextStyles.bodyMedium),
+            Text(value, style: AppTextStyles.titleSmall),
           ],
         ),
       );
@@ -164,7 +187,7 @@ class _SuccessScreen extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         body: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.xxl),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -172,40 +195,55 @@ class _SuccessScreen extends StatelessWidget {
                 Container(
                   width: 80,
                   height: 80,
-                  decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                      color: AppColors.success, shape: BoxShape.circle),
                   child: const Icon(Icons.check, color: Colors.white, size: 44),
                 ),
-                const SizedBox(height: 24),
-                const Text("You're booked!", style: TextStyle(color: AppColors.white, fontSize: 28, fontWeight: FontWeight.w700)),
-                const SizedBox(height: 8),
-                Text('${flight.origin.city} to ${flight.destination.city}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 16)),
-                const SizedBox(height: 32),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
-                  ),
+                const SizedBox(height: AppSpacing.xxl),
+                Text("You're booked!",
+                    style: Theme.of(context).textTheme.displayMedium),
+                const SizedBox(height: AppSpacing.sm),
+                Text('${flight.origin.city} to ${flight.destination.city}',
+                    style: AppTextStyles.bodyLarge),
+                const SizedBox(height: AppSpacing.x3l),
+                JsxCard(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.x3l, vertical: AppSpacing.xl),
+                  borderColor: AppColors.gold.withValues(alpha: 0.3),
+                  radius: AppRadius.sheet,
                   child: Column(
                     children: [
-                      const Text('CONFIRMATION', style: TextStyle(color: AppColors.textMuted, fontSize: 11, letterSpacing: 1.5)),
-                      const SizedBox(height: 8),
-                      Text(confirmationCode, style: const TextStyle(color: AppColors.gold, fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: 3)),
-                      const SizedBox(height: 12),
-                      Text(DateFormat('EEE, MMM d · h:mm a').format(flight.departureTime), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                      Text('CONFIRMATION',
+                          style: AppTextStyles.labelSmall.copyWith(
+                              letterSpacing: 1.5,
+                              color: AppColors.textMuted)),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(confirmationCode,
+                          style: const TextStyle(
+                              color: AppColors.gold,
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 3)),
+                      const SizedBox(height: AppSpacing.itemGap),
+                      Text(
+                          DateFormat('EEE, MMM d · h:mm a')
+                              .format(flight.departureTime),
+                          style: AppTextStyles.bodyMedium),
                     ],
                   ),
                 ),
                 const Spacer(),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
-                  child: const Text('Back to Home'),
+                JsxButton(
+                  label: 'Back to Home',
+                  onPressed: () =>
+                      Navigator.of(context).popUntil((r) => r.isFirst),
                 ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
-                  child: const Text('View My Trips', style: TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: AppSpacing.itemGap),
+                JsxButton(
+                  label: 'View My Trips',
+                  variant: JsxButtonVariant.ghost,
+                  onPressed: () =>
+                      Navigator.of(context).popUntil((r) => r.isFirst),
                 ),
               ],
             ),
