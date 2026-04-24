@@ -141,10 +141,10 @@ class _BookingCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
+                      JsxText(
                           DateFormat('EEE, MMM d, yyyy')
                               .format(booking.flight.departureTime),
-                          style: AppTextStyles.bodySmall),
+                          JsxTextVariant.bodySmall),
                       JsxBadge.bookingStatus(booking.status),
                     ],
                   ),
@@ -181,11 +181,11 @@ class _BookingCard extends StatelessWidget {
                       Icon(Icons.people_outline,
                           size: 13, color: AppColors.textMuted),
                       const SizedBox(width: 4),
-                      Text('${booking.passengers.length} pax',
-                          style: AppTextStyles.bodySmall),
+                      JsxText('${booking.passengers.length} pax',
+                          JsxTextVariant.bodySmall),
                       const SizedBox(width: AppSpacing.lg),
-                      Text('\$${booking.totalPaid.toStringAsFixed(0)}',
-                          style: AppTextStyles.titleSmall),
+                      JsxText('\$${booking.totalPaid.toStringAsFixed(0)}',
+                          JsxTextVariant.titleSmall),
                       const SizedBox(width: AppSpacing.sm),
                       const Icon(Icons.arrow_forward_ios,
                           size: 11, color: AppColors.textMuted),

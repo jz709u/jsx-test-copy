@@ -29,7 +29,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Flight Details', style: Theme.of(context).textTheme.headlineMedium),
+            JsxText('Flight Details', JsxTextVariant.headlineMedium),
             const SizedBox(height: AppSpacing.itemGap),
             JsxCard(
               child: Column(
@@ -48,7 +48,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.xxl),
-            Text('Passengers', style: Theme.of(context).textTheme.headlineMedium),
+            JsxText('Passengers', JsxTextVariant.headlineMedium),
             const SizedBox(height: AppSpacing.itemGap),
             JsxCard(
               child: Column(
@@ -73,9 +73,9 @@ class BookingConfirmationScreen extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(width: AppSpacing.itemGap),
-                        Text(
+                        JsxText(
                           i == 0 ? 'Alex Rivera (You)' : 'Passenger ${i + 1}',
-                          style: AppTextStyles.titleMedium,
+                          JsxTextVariant.titleMedium,
                         ),
                       ],
                     ),
@@ -84,7 +84,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.xxl),
-            Text('Price Summary', style: Theme.of(context).textTheme.headlineMedium),
+            JsxText('Price Summary', JsxTextVariant.headlineMedium),
             const SizedBox(height: AppSpacing.itemGap),
             JsxCard(
               child: Column(
@@ -95,7 +95,7 @@ class BookingConfirmationScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Total', style: Theme.of(context).textTheme.titleLarge),
+                      JsxText('Total', JsxTextVariant.titleLarge),
                       Text('\$${total.toStringAsFixed(0)}',
                           style: const TextStyle(
                               color: AppColors.gold,
@@ -171,8 +171,8 @@ class _Row extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: AppTextStyles.bodyMedium),
-            Text(value, style: AppTextStyles.titleSmall),
+            JsxText(label, JsxTextVariant.bodyMedium),
+            JsxText(value, JsxTextVariant.titleSmall),
           ],
         ),
       );
@@ -200,11 +200,10 @@ class _SuccessScreen extends StatelessWidget {
                   child: const Icon(Icons.check, color: Colors.white, size: 44),
                 ),
                 const SizedBox(height: AppSpacing.xxl),
-                Text("You're booked!",
-                    style: Theme.of(context).textTheme.displayMedium),
+                JsxText("You're booked!", JsxTextVariant.displayMedium),
                 const SizedBox(height: AppSpacing.sm),
-                Text('${flight.origin.city} to ${flight.destination.city}',
-                    style: AppTextStyles.bodyLarge),
+                JsxText('${flight.origin.city} to ${flight.destination.city}',
+                    JsxTextVariant.bodyLarge),
                 const SizedBox(height: AppSpacing.x3l),
                 JsxCard(
                   padding: const EdgeInsets.symmetric(
@@ -213,10 +212,8 @@ class _SuccessScreen extends StatelessWidget {
                   radius: AppRadius.sheet,
                   child: Column(
                     children: [
-                      Text('CONFIRMATION',
-                          style: AppTextStyles.labelSmall.copyWith(
-                              letterSpacing: 1.5,
-                              color: AppColors.textMuted)),
+                      JsxText('CONFIRMATION', JsxTextVariant.labelSmall,
+                          letterSpacing: 1.5, color: AppColors.textMuted),
                       const SizedBox(height: AppSpacing.sm),
                       Text(confirmationCode,
                           style: const TextStyle(
@@ -225,10 +222,10 @@ class _SuccessScreen extends StatelessWidget {
                               fontWeight: FontWeight.w800,
                               letterSpacing: 3)),
                       const SizedBox(height: AppSpacing.itemGap),
-                      Text(
+                      JsxText(
                           DateFormat('EEE, MMM d · h:mm a')
                               .format(flight.departureTime),
-                          style: AppTextStyles.bodyMedium),
+                          JsxTextVariant.bodyMedium),
                     ],
                   ),
                 ),

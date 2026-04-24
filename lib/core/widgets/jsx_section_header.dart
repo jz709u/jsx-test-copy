@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'jsx_text.dart';
 
 /// Section heading with optional gold count pill.
 class JsxSectionHeader extends StatelessWidget {
@@ -15,7 +16,7 @@ class JsxSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
         children: [
-          Text(title, style: Theme.of(context).textTheme.headlineMedium),
+          JsxText(title, JsxTextVariant.headlineMedium),
           if (count != null) ...[
             const SizedBox(width: AppSpacing.sm),
             Container(

@@ -77,7 +77,7 @@ class _FlightResultCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(flight.id, style: AppTextStyles.labelSmall),
+              JsxText(flight.id, JsxTextVariant.labelSmall),
               JsxBadge.flightStatus(flight.status),
             ],
           ),
@@ -92,14 +92,14 @@ class _FlightResultCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(flight.aircraft, style: AppTextStyles.bodySmall),
+                  JsxText(flight.aircraft, JsxTextVariant.bodySmall),
                   const SizedBox(height: 2),
                   if (flight.isAlmostFull)
                     Text('Only ${flight.availableSeats} seats left!',
                         style: const TextStyle(color: AppColors.warning, fontSize: 11, fontWeight: FontWeight.w600))
                   else
-                    Text('${flight.availableSeats} seats available',
-                        style: AppTextStyles.labelSmall),
+                    JsxText('${flight.availableSeats} seats available',
+                        JsxTextVariant.labelSmall),
                 ],
               ),
               Column(
@@ -108,8 +108,8 @@ class _FlightResultCard extends StatelessWidget {
                   Text('\$${totalPrice.toStringAsFixed(0)}',
                       style: const TextStyle(color: AppColors.white, fontSize: 22, fontWeight: FontWeight.w800)),
                   if (passengers > 1)
-                    Text('\$${flight.price.toStringAsFixed(0)}/person',
-                        style: AppTextStyles.labelSmall),
+                    JsxText('\$${flight.price.toStringAsFixed(0)}/person',
+                        JsxTextVariant.labelSmall),
                 ],
               ),
             ],

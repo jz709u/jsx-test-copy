@@ -207,8 +207,8 @@ class _UpcomingBookingCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(DateFormat('MMM d, yyyy').format(booking.flight.departureTime),
-                    style: AppTextStyles.bodySmall),
+                JsxText(DateFormat('MMM d, yyyy').format(booking.flight.departureTime),
+                    JsxTextVariant.bodySmall),
                 Text(booking.confirmationCode,
                     style: const TextStyle(
                         color: AppColors.gold,

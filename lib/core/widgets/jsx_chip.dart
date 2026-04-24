@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'jsx_text.dart';
 
 /// Small inline label, optionally with a leading icon.
 ///
@@ -75,7 +76,7 @@ class _NavChip extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Text(label, style: AppTextStyles.titleSmall),
+              child: JsxText(label, JsxTextVariant.titleSmall),
             ),
             const Icon(Icons.arrow_forward_ios,
                 size: 10, color: AppColors.textMuted),

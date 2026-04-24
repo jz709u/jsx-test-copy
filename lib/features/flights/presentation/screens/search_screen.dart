@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/jsx_text.dart';
 import '../../domain/entities/airport.dart';
 import '../providers/flight_results_provider.dart';
 import '../providers/flight_search_provider.dart';
@@ -313,7 +314,7 @@ class _AirportPicker extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: Theme.of(context).textTheme.headlineMedium),
+              JsxText(title, JsxTextVariant.headlineMedium),
               IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: AppColors.textSecondary)),
             ],
           ),
@@ -361,7 +362,7 @@ class _PassengerPickerState extends State<_PassengerPicker> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Passengers', style: Theme.of(context).textTheme.headlineMedium),
+            JsxText('Passengers', JsxTextVariant.headlineMedium),
             const SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

@@ -31,8 +31,7 @@ class TripDetailScreen extends StatelessWidget {
                     ],
                     _TrackFlightButton(booking: booking),
                     const SizedBox(height: AppSpacing.xl),
-                    Text('Flight Details',
-                        style: Theme.of(context).textTheme.headlineMedium),
+                    JsxText('Flight Details', JsxTextVariant.headlineMedium),
                     const SizedBox(height: AppSpacing.itemGap),
                     JsxCard(
                       child: Column(
@@ -52,8 +51,7 @@ class TripDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    Text('Passengers',
-                        style: Theme.of(context).textTheme.headlineMedium),
+                    JsxText('Passengers', JsxTextVariant.headlineMedium),
                     const SizedBox(height: AppSpacing.itemGap),
                     JsxCard(
                       child: Column(
@@ -77,7 +75,7 @@ class TripDetailScreen extends StatelessWidget {
                                         ),
                                       ),
                                       const SizedBox(width: AppSpacing.itemGap),
-                                      Text(p.fullName, style: AppTextStyles.bodyLarge),
+                                      JsxText(p.fullName, JsxTextVariant.bodyLarge),
                                     ],
                                   ),
                                 ))
@@ -85,8 +83,7 @@ class TripDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    Text('Payment',
-                        style: Theme.of(context).textTheme.headlineMedium),
+                    JsxText('Payment', JsxTextVariant.headlineMedium),
                     const SizedBox(height: AppSpacing.itemGap),
                     JsxCard(
                       child: Column(
@@ -172,9 +169,8 @@ class _BoardingPassCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('CONFIRMATION',
-                            style: AppTextStyles.labelSmall
-                                .copyWith(letterSpacing: 1.2)),
+                        JsxText('CONFIRMATION', JsxTextVariant.labelSmall,
+                            letterSpacing: 1.2),
                         const SizedBox(height: 4),
                         Row(
                           children: [
@@ -196,9 +192,8 @@ class _BoardingPassCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text('SEAT',
-                            style: AppTextStyles.labelSmall
-                                .copyWith(letterSpacing: 1.2)),
+                        JsxText('SEAT', JsxTextVariant.labelSmall,
+                            letterSpacing: 1.2),
                         const SizedBox(height: 4),
                         Text('${booking.seatNumber}',
                             style: const TextStyle(
@@ -289,11 +284,11 @@ class _CheckInBanner extends StatelessWidget {
                         fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 2),
-                  Text(
+                  JsxText(
                     _canCheckIn
                         ? 'Check in now for a smoother boarding experience'
                         : 'Check-in opens 24 hours before departure',
-                    style: AppTextStyles.labelSmall,
+                    JsxTextVariant.labelSmall,
                   ),
                 ],
               ),
@@ -331,21 +326,21 @@ class _TrackFlightButton extends StatelessWidget {
         ),
         borderColor: AppColors.gold.withValues(alpha: 0.3),
         radius: 14,
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.radar, color: AppColors.gold, size: 22),
-            SizedBox(width: 14),
+            const Icon(Icons.radar, color: AppColors.gold, size: 22),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Track Flight', style: AppTextStyles.titleMedium),
-                  Text('Live position, altitude & speed',
-                      style: AppTextStyles.labelSmall),
+                  JsxText('Track Flight', JsxTextVariant.titleMedium),
+                  JsxText('Live position, altitude & speed',
+                      JsxTextVariant.labelSmall),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
+            const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textMuted),
           ],
         ),
       );
@@ -362,8 +357,8 @@ class _Row extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: AppTextStyles.bodyMedium),
-            Text(value, style: AppTextStyles.titleSmall),
+            JsxText(label, JsxTextVariant.bodyMedium),
+            JsxText(value, JsxTextVariant.titleSmall),
           ],
         ),
       );

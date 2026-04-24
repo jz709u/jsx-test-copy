@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'jsx_button.dart';
+import 'jsx_text.dart';
 
 /// Centered empty-state with icon, title, subtitle, and optional action button.
 class JsxEmptyState extends StatelessWidget {
@@ -28,13 +29,10 @@ class JsxEmptyState extends StatelessWidget {
             children: [
               Icon(icon, size: 64, color: AppColors.textMuted),
               const SizedBox(height: AppSpacing.lg),
-              Text(title, style: Theme.of(context).textTheme.headlineMedium),
+              JsxText(title, JsxTextVariant.headlineMedium),
               const SizedBox(height: AppSpacing.sm),
-              Text(
-                subtitle,
-                style: AppTextStyles.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
+              JsxText(subtitle, JsxTextVariant.bodyMedium,
+                  textAlign: TextAlign.center),
               if (actionLabel != null && onAction != null) ...[
                 const SizedBox(height: AppSpacing.xxl),
                 JsxButton(
