@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/jsx_text.dart';
 import '../../domain/entities/flight.dart';
 import '../../domain/entities/flight_track.dart';
 import '../../services/live_activity_service.dart';
@@ -185,10 +186,7 @@ class _FlightPathCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _AirportLabel(code: flight.origin.code, city: flight.origin.city, align: CrossAxisAlignment.start),
-              Text(
-                flight.durationString,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-              ),
+              JsxText(flight.durationString, JsxTextVariant.labelMedium),
               _AirportLabel(code: flight.destination.code, city: flight.destination.city, align: CrossAxisAlignment.end),
             ],
           ),
@@ -218,15 +216,11 @@ class _FlightPathCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '${(track.progress * 100).toStringAsFixed(0)}% complete',
-                style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
-              ),
+              JsxText('${(track.progress * 100).toStringAsFixed(0)}% complete',
+                  JsxTextVariant.labelSmall),
               if (track.phase != FlightTrackPhase.landed && track.phase != FlightTrackPhase.preDeparture)
-                Text(
-                  '${track.minutesRemaining}m remaining',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
-                ),
+                JsxText('${track.minutesRemaining}m remaining',
+                    JsxTextVariant.labelSmall, color: AppColors.textSecondary),
             ],
           ),
         ],
@@ -343,7 +337,7 @@ class _AirportLabel extends StatelessWidget {
         crossAxisAlignment: align,
         children: [
           Text(code, style: const TextStyle(color: AppColors.gold, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
-          Text(city, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          JsxText(city, JsxTextVariant.labelSmall, color: AppColors.textSecondary),
         ],
       );
 }
@@ -383,9 +377,9 @@ class _PhaseCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Current Phase', style: TextStyle(color: AppColors.textMuted, fontSize: 11)),
+              const JsxText('Current Phase', JsxTextVariant.labelSmall),
               const SizedBox(height: 2),
-              Text(track.phase.label, style: const TextStyle(color: AppColors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+              JsxText(track.phase.label, JsxTextVariant.headlineMedium),
             ],
           ),
         ],
@@ -458,13 +452,13 @@ class _StatCard extends StatelessWidget {
             children: [
               Icon(icon, size: 14, color: AppColors.gold),
               const SizedBox(width: 6),
-              Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+              JsxText(label, JsxTextVariant.labelSmall),
             ],
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(value, style: const TextStyle(color: AppColors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+              JsxText(value, JsxTextVariant.headlineSmall),
               if (sub.isNotEmpty)
                 Text(sub, style: const TextStyle(color: AppColors.textSecondary, fontSize: 10)),
             ],
@@ -511,9 +505,9 @@ class _EtaCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                JsxText(
                   isLanded ? 'Arrived' : (isPre ? 'Departing in' : 'Estimated Arrival'),
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  JsxTextVariant.labelMedium,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -572,8 +566,8 @@ class _InfoRow extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-            Flexible(child: Text(value, style: const TextStyle(color: AppColors.white, fontSize: 13, fontWeight: FontWeight.w500), textAlign: TextAlign.end)),
+            JsxText(label, JsxTextVariant.titleSmall, color: AppColors.textSecondary),
+            Flexible(child: JsxText(value, JsxTextVariant.titleSmall, textAlign: TextAlign.end)),
           ],
         ),
       );

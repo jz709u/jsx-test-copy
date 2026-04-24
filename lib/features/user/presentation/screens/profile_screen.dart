@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/jsx_text.dart';
 import '../../domain/entities/user.dart';
 import '../providers/user_provider.dart';
 
@@ -82,7 +83,7 @@ class _ProfileBody extends StatelessWidget {
                     _SettingsItem(icon: Icons.logout, label: 'Sign Out', labelColor: AppColors.error, onTap: () {}, showChevron: false),
                   ]),
                   const SizedBox(height: 32),
-                  const Center(child: Text('JSX: How I Fly v1.0.0', style: TextStyle(color: AppColors.textMuted, fontSize: 12))),
+                  const Center(child: JsxText('JSX: How I Fly v1.0.0', JsxTextVariant.bodySmall)),
                   const SizedBox(height: 16),
                 ]),
               ),
@@ -167,7 +168,7 @@ class _ClubJsxCard extends StatelessWidget {
               children: [
                 const Icon(Icons.info_outline, size: 13, color: AppColors.textMuted),
                 const SizedBox(width: 6),
-                const Text('Earn 5% back on every flight', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                const JsxText('Earn 5% back on every flight', JsxTextVariant.labelMedium),
                 const Spacer(),
                 GestureDetector(child: const Text('Learn More', style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w600))),
               ],
@@ -188,7 +189,7 @@ class _Stat extends StatelessWidget {
         children: [
           Text(value, style: TextStyle(color: highlight ? AppColors.gold : AppColors.white, fontSize: 24, fontWeight: FontWeight.w800)),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 11), textAlign: TextAlign.center),
+          JsxText(label, JsxTextVariant.labelSmall, textAlign: TextAlign.center),
         ],
       );
 }
@@ -249,8 +250,8 @@ class _SettingsItem extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: TextStyle(color: labelColor ?? AppColors.white, fontSize: 14, fontWeight: FontWeight.w500)),
-                    if (value != null) ...[const SizedBox(height: 1), Text(value!, style: const TextStyle(color: AppColors.textMuted, fontSize: 12))],
+                    JsxText(label, JsxTextVariant.titleMedium, color: labelColor),
+                    if (value != null) ...[const SizedBox(height: 1), JsxText(value!, JsxTextVariant.bodySmall)],
                   ],
                 ),
               ),
