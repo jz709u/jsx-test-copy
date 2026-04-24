@@ -24,10 +24,10 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-        error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(child: JsxText('Error: $e', JsxTextVariant.bodyMedium, color: AppColors.error)),
         data: (user) => bookingsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-          error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppColors.error))),
+          error: (e, _) => Center(child: JsxText('Error: $e', JsxTextVariant.bodyMedium, color: AppColors.error)),
           data: (bookings) => _HomeBody(
           user: user,
           bookings: bookings,
@@ -89,7 +89,7 @@ class _HomeBody extends StatelessWidget {
                 height: 38,
                 decoration: const BoxDecoration(color: AppColors.gold, shape: BoxShape.circle),
                 child: Center(
-                  child: Text(user.initials, style: const TextStyle(color: AppColors.background, fontSize: 14, fontWeight: FontWeight.w800)),
+                  child: JsxText(user.initials, JsxTextVariant.titleMedium, color: AppColors.background),
                 ),
               ),
             ),
@@ -161,7 +161,7 @@ class _NextFlightCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('NEXT FLIGHT', style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+              const JsxText('NEXT FLIGHT', JsxTextVariant.labelSmall, color: AppColors.gold, letterSpacing: 1.5),
               JsxBadge.flightStatus(booking.flight.status),
             ],
           ),
@@ -205,12 +205,8 @@ class _UpcomingBookingCard extends StatelessWidget {
               children: [
                 JsxText(DateFormat('MMM d, yyyy').format(booking.flight.departureTime),
                     JsxTextVariant.bodySmall),
-                Text(booking.confirmationCode,
-                    style: const TextStyle(
-                        color: AppColors.gold,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1)),
+                JsxText(booking.confirmationCode, JsxTextVariant.labelMedium,
+                    color: AppColors.gold, letterSpacing: 1),
               ],
             ),
           ],
@@ -237,11 +233,11 @@ class _LoyaltyCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('CLUB JSX', style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+              const JsxText('CLUB JSX', JsxTextVariant.labelSmall, color: AppColors.gold, letterSpacing: 1.5),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(color: AppColors.gold.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
-                child: const Text('Member', style: TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w600)),
+                child: const JsxText('Member', JsxTextVariant.labelSmall, color: AppColors.gold),
               ),
             ],
           ),
@@ -281,9 +277,9 @@ class _LoyaltyStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
         children: [
-          Text(value, style: const TextStyle(color: AppColors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+          JsxText(value, JsxTextVariant.headlineLarge),
           const SizedBox(height: 2),
-          Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 10), textAlign: TextAlign.center),
+          JsxText(label, JsxTextVariant.caption, textAlign: TextAlign.center),
         ],
       );
 }

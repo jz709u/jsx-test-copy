@@ -67,11 +67,8 @@ class TripDetailScreen extends StatelessWidget {
                                             color: AppColors.gold.withValues(alpha: 0.15),
                                             shape: BoxShape.circle),
                                         child: Center(
-                                          child: Text(p.initials,
-                                              style: const TextStyle(
-                                                  color: AppColors.gold,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w700)),
+                                          child: JsxText(p.initials,
+                                              JsxTextVariant.labelSmall, color: AppColors.gold),
                                         ),
                                       ),
                                       const SizedBox(width: AppSpacing.itemGap),
@@ -136,12 +133,8 @@ class _BoardingPassCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('JSX',
-                          style: TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2)),
+                      const JsxText('JSX', JsxTextVariant.headlineLarge,
+                          color: AppColors.gold, letterSpacing: 2),
                       JsxBadge.flightStatus(booking.flight.status),
                     ],
                   ),
@@ -174,12 +167,9 @@ class _BoardingPassCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Text(booking.confirmationCode,
-                                style: const TextStyle(
-                                    color: AppColors.gold,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 2)),
+                            JsxText(booking.confirmationCode,
+                                JsxTextVariant.headlineLarge,
+                                color: AppColors.gold, letterSpacing: 2),
                             const SizedBox(width: 6),
                             const Icon(Icons.copy,
                                 size: 12, color: AppColors.textMuted),
@@ -195,11 +185,7 @@ class _BoardingPassCard extends StatelessWidget {
                         JsxText('SEAT', JsxTextVariant.labelSmall,
                             letterSpacing: 1.2),
                         const SizedBox(height: 4),
-                        Text('${booking.seatNumber}',
-                            style: const TextStyle(
-                                color: AppColors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800)),
+                        JsxText('${booking.seatNumber}', JsxTextVariant.headlineLarge),
                       ],
                     ),
                 ],
@@ -276,12 +262,10 @@ class _CheckInBanner extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  JsxText(
                     _canCheckIn ? 'Check-in Available' : 'Check-in Opens Soon',
-                    style: TextStyle(
-                        color: _canCheckIn ? AppColors.gold : AppColors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600),
+                    JsxTextVariant.titleSmall,
+                    color: _canCheckIn ? AppColors.gold : AppColors.white,
                   ),
                   const SizedBox(height: 2),
                   JsxText(
@@ -300,11 +284,8 @@ class _CheckInBanner extends StatelessWidget {
                 decoration: BoxDecoration(
                     color: AppColors.gold,
                     borderRadius: BorderRadius.circular(AppRadius.sm)),
-                child: const Text('Check In',
-                    style: TextStyle(
-                        color: AppColors.background,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700)),
+                child: const JsxText('Check In', JsxTextVariant.labelMedium,
+                    color: AppColors.background),
               ),
           ],
         ),

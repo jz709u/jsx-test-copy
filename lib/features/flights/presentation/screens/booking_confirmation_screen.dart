@@ -65,11 +65,8 @@ class BookingConfirmationScreen extends ConsumerWidget {
                               color: AppColors.gold.withValues(alpha: 0.15),
                               shape: BoxShape.circle),
                           child: Center(
-                            child: Text('${i + 1}',
-                                style: const TextStyle(
-                                    color: AppColors.gold,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700)),
+                            child: JsxText('${i + 1}',
+                                JsxTextVariant.titleSmall, color: AppColors.gold),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.itemGap),
@@ -96,11 +93,8 @@ class BookingConfirmationScreen extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       JsxText('Total', JsxTextVariant.titleLarge),
-                      Text('\$${total.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800)),
+                      JsxText('\$${total.toStringAsFixed(0)}',
+                          JsxTextVariant.headlineLarge, color: AppColors.gold),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.itemGap),
@@ -113,12 +107,9 @@ class BookingConfirmationScreen extends ConsumerWidget {
                       children: [
                         const Icon(Icons.stars_rounded, color: AppColors.gold, size: 16),
                         const SizedBox(width: AppSpacing.sm),
-                        Text(
+                        JsxText(
                           "You'll earn \$${(total * 0.05).toStringAsFixed(2)} Club JSX credit",
-                          style: const TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600),
+                          JsxTextVariant.labelMedium, color: AppColors.gold,
                         ),
                       ],
                     ),
@@ -134,8 +125,8 @@ class BookingConfirmationScreen extends ConsumerWidget {
                 decoration: BoxDecoration(
                     color: AppColors.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppRadius.chip)),
-                child: Text(bookingState.errorMessage ?? 'Something went wrong',
-                    style: const TextStyle(color: AppColors.error)),
+                child: JsxText(bookingState.errorMessage ?? 'Something went wrong',
+                    JsxTextVariant.bodySmall, color: AppColors.error),
               ),
             ],
             JsxButton(
@@ -215,12 +206,8 @@ class _SuccessScreen extends StatelessWidget {
                       JsxText('CONFIRMATION', JsxTextVariant.labelSmall,
                           letterSpacing: 1.5, color: AppColors.textMuted),
                       const SizedBox(height: AppSpacing.sm),
-                      Text(confirmationCode,
-                          style: const TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 32,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 3)),
+                      JsxText(confirmationCode, JsxTextVariant.displayMedium,
+                          color: AppColors.gold, letterSpacing: 3),
                       const SizedBox(height: AppSpacing.itemGap),
                       JsxText(
                           DateFormat('EEE, MMM d · h:mm a')

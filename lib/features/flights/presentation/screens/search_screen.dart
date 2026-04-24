@@ -59,14 +59,12 @@ class SearchScreen extends ConsumerWidget {
                   child: const Text('Search Flights'),
                 ),
                 const SizedBox(height: 32),
-                const Text(
-                  'POPULAR ROUTES',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5),
-                ),
+                const JsxText('POPULAR ROUTES', JsxTextVariant.labelSmall,
+                    color: AppColors.textSecondary, letterSpacing: 1.5),
                 const SizedBox(height: 12),
                 airportsAsync.when(
                   loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-                  error: (e, _) => Text('$e', style: const TextStyle(color: AppColors.error)),
+                  error: (e, _) => JsxText('$e', JsxTextVariant.bodyMedium, color: AppColors.error),
                   data: (airports) => Column(
                     children: airports
                         .take(6)
@@ -369,7 +367,7 @@ class _PassengerPickerState extends State<_PassengerPicker> {
               children: [
                 _CountBtn(icon: Icons.remove, onTap: _count > 1 ? () { setState(() => _count--); widget.onChanged(_count); } : null),
                 const SizedBox(width: 32),
-                Text('$_count', style: const TextStyle(color: AppColors.white, fontSize: 40, fontWeight: FontWeight.w700)),
+                JsxText('$_count', JsxTextVariant.displayLarge),
                 const SizedBox(width: 32),
                 _CountBtn(icon: Icons.add, onTap: _count < 8 ? () { setState(() => _count++); widget.onChanged(_count); } : null),
               ],

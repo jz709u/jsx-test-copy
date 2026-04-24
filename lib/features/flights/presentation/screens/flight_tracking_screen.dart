@@ -118,7 +118,7 @@ class _FlightTrackingScreenState extends ConsumerState<FlightTrackingScreen> {
                     .then()
                     .fadeOut(duration: 800.ms),
                 const SizedBox(width: 6),
-                const Text('Live', style: TextStyle(color: AppColors.success, fontSize: 12, fontWeight: FontWeight.w600)),
+                const JsxText('Live', JsxTextVariant.labelMedium, color: AppColors.success),
               ],
             ),
           ),
@@ -126,7 +126,7 @@ class _FlightTrackingScreenState extends ConsumerState<FlightTrackingScreen> {
       ),
       body: trackAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-        error: (e, _) => Center(child: Text('$e', style: const TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(child: JsxText('$e', JsxTextVariant.bodyMedium, color: AppColors.error)),
         data: (track) => _TrackingBody(flight: widget.flight, track: track),
       ),
     );
@@ -336,7 +336,7 @@ class _AirportLabel extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: align,
         children: [
-          Text(code, style: const TextStyle(color: AppColors.gold, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+          JsxText(code, JsxTextVariant.headlineLarge, color: AppColors.gold, letterSpacing: -0.5),
           JsxText(city, JsxTextVariant.labelSmall, color: AppColors.textSecondary),
         ],
       );
@@ -460,7 +460,7 @@ class _StatCard extends StatelessWidget {
             children: [
               JsxText(value, JsxTextVariant.headlineSmall),
               if (sub.isNotEmpty)
-                Text(sub, style: const TextStyle(color: AppColors.textSecondary, fontSize: 10)),
+                JsxText(sub, JsxTextVariant.caption, color: AppColors.textSecondary),
             ],
           ),
         ],
@@ -510,17 +510,14 @@ class _EtaCard extends StatelessWidget {
                   JsxTextVariant.labelMedium,
                 ),
                 const SizedBox(height: 4),
-                Text(
+                JsxText(
                   isLanded
                       ? flight.destination.city
                       : isPre
                           ? '${track.minutesRemaining} minutes'
                           : '${track.minutesRemaining} min · ${flight.destination.city}',
-                  style: TextStyle(
-                    color: isLanded ? AppColors.success : AppColors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  JsxTextVariant.headlineMedium,
+                  color: isLanded ? AppColors.success : AppColors.white,
                 ),
               ],
             ),
@@ -543,7 +540,7 @@ class _FlightInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('FLIGHT INFO', style: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1.2)),
+          const JsxText('FLIGHT INFO', JsxTextVariant.caption, letterSpacing: 1.2),
           const SizedBox(height: 12),
           _InfoRow('Aircraft', flight.aircraft),
           _InfoRow('Origin', '${flight.origin.name} (${flight.origin.code})'),

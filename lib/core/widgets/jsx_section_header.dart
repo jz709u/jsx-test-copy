@@ -26,13 +26,8 @@ class JsxSectionHeader extends StatelessWidget {
                 color: AppColors.gold.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(AppRadius.full),
               ),
-              child: Text(
-                '$count',
-                style: const TextStyle(
-                    color: AppColors.gold,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700),
-              ),
+              child: JsxText('$count', JsxTextVariant.labelMedium,
+                  color: AppColors.gold),
             ),
           ],
         ],

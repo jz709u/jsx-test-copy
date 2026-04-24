@@ -16,6 +16,7 @@ enum JsxTextVariant {
   labelLarge,
   labelMedium,
   labelSmall,
+  caption,
   mono,
 }
 
@@ -82,7 +83,8 @@ class JsxText extends StatelessWidget {
       JsxTextVariant.labelLarge  => tt.labelLarge!,
       JsxTextVariant.labelMedium => tt.labelMedium!,
       JsxTextVariant.labelSmall  => tt.labelSmall!,
-      // mono isn't in TextTheme — falls back to AppTextStyles directly
+      // caption and mono aren't in TextTheme — fall back to AppTextStyles directly
+      JsxTextVariant.caption => AppTextStyles.caption,
       JsxTextVariant.mono => AppTextStyles.mono,
     };
   }

@@ -24,16 +24,14 @@ class FlightResultsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${params.fromCode} → ${params.toCode}'),
-            Text(
-              '${DateFormat('MMM d').format(params.date)} · $passengers pax',
-              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-            ),
+            JsxText('${DateFormat('MMM d').format(params.date)} · $passengers pax',
+                JsxTextVariant.labelMedium),
           ],
         ),
       ),
       body: resultsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-        error: (e, _) => Center(child: Text('$e', style: const TextStyle(color: AppColors.error))),
+        error: (e, _) => Center(child: JsxText('$e', JsxTextVariant.bodyMedium, color: AppColors.error)),
         data: (results) => results.isEmpty
             ? _EmptyResults(fromCode: params.fromCode, toCode: params.toCode)
             : ListView.separated(
@@ -95,8 +93,8 @@ class _FlightResultCard extends StatelessWidget {
                   JsxText(flight.aircraft, JsxTextVariant.bodySmall),
                   const SizedBox(height: 2),
                   if (flight.isAlmostFull)
-                    Text('Only ${flight.availableSeats} seats left!',
-                        style: const TextStyle(color: AppColors.warning, fontSize: 11, fontWeight: FontWeight.w600))
+                    JsxText('Only ${flight.availableSeats} seats left!',
+                        JsxTextVariant.labelSmall, color: AppColors.warning)
                   else
                     JsxText('${flight.availableSeats} seats available',
                         JsxTextVariant.labelSmall),
@@ -105,8 +103,7 @@ class _FlightResultCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('\$${totalPrice.toStringAsFixed(0)}',
-                      style: const TextStyle(color: AppColors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+                  JsxText('\$${totalPrice.toStringAsFixed(0)}', JsxTextVariant.headlineLarge),
                   if (passengers > 1)
                     JsxText('\$${flight.price.toStringAsFixed(0)}/person',
                         JsxTextVariant.labelSmall),

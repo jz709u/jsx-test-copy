@@ -91,6 +91,9 @@ class AppTextStyles {
   static const labelMedium = TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500);
   static const labelSmall  = TextStyle(color: AppColors.textMuted,     fontSize: 11, fontWeight: FontWeight.w500);
 
+  // Caption (smallest supporting text)
+  static const caption = TextStyle(color: AppColors.textMuted, fontSize: 10);
+
   // Mono (confirmation codes, IDs)
   static const mono = TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600, fontFamily: 'monospace');
 }

@@ -23,7 +23,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final userAsync = ref.watch(currentUserProvider);
     return userAsync.when(
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.gold))),
-      error: (e, _) => Scaffold(body: Center(child: Text('$e', style: const TextStyle(color: AppColors.error)))),
+      error: (e, _) => Scaffold(body: Center(child: JsxText('$e', JsxTextVariant.bodyMedium, color: AppColors.error))),
       data: (user) => _ProfileBody(user: user, onRefresh: _refresh),
     );
   }
@@ -113,16 +113,16 @@ class _ProfileHeader extends StatelessWidget {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(color: AppColors.gold, shape: BoxShape.circle, border: Border.all(color: AppColors.gold.withValues(alpha: 0.3), width: 3)),
-                  child: Center(child: Text(user.initials, style: const TextStyle(color: AppColors.background, fontSize: 26, fontWeight: FontWeight.w800))),
+                  child: Center(child: JsxText(user.initials, JsxTextVariant.headlineLarge, color: AppColors.background)),
                 ),
                 const SizedBox(height: 10),
-                Text(user.fullName, style: const TextStyle(color: AppColors.white, fontSize: 20, fontWeight: FontWeight.w700)),
-                Text(user.email, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                JsxText(user.fullName, JsxTextVariant.headlineLarge),
+                JsxText(user.email, JsxTextVariant.titleSmall, color: AppColors.textSecondary),
                 const SizedBox(height: 6),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(color: AppColors.gold.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
-                  child: Text('Club JSX Member since ${user.memberSince}', style: const TextStyle(color: AppColors.gold, fontSize: 11, fontWeight: FontWeight.w600)),
+                  child: JsxText('Club JSX Member since ${user.memberSince}', JsxTextVariant.labelSmall, color: AppColors.gold),
                 ),
               ],
             ),
@@ -149,7 +149,7 @@ class _ClubJsxCard extends StatelessWidget {
             const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('CLUB JSX', style: TextStyle(color: AppColors.gold, fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                JsxText('CLUB JSX', JsxTextVariant.titleSmall, color: AppColors.gold, letterSpacing: 2),
                 Icon(Icons.stars_rounded, color: AppColors.gold, size: 20),
               ],
             ),
@@ -170,7 +170,7 @@ class _ClubJsxCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 const JsxText('Earn 5% back on every flight', JsxTextVariant.labelMedium),
                 const Spacer(),
-                GestureDetector(child: const Text('Learn More', style: TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w600))),
+                GestureDetector(child: const JsxText('Learn More', JsxTextVariant.labelMedium, color: AppColors.gold)),
               ],
             ),
           ],
@@ -187,7 +187,7 @@ class _Stat extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
         children: [
-          Text(value, style: TextStyle(color: highlight ? AppColors.gold : AppColors.white, fontSize: 24, fontWeight: FontWeight.w800)),
+          JsxText(value, JsxTextVariant.headlineLarge, color: highlight ? AppColors.gold : AppColors.white),
           const SizedBox(height: 2),
           JsxText(label, JsxTextVariant.labelSmall, textAlign: TextAlign.center),
         ],
@@ -199,9 +199,9 @@ class _SectionLabel extends StatelessWidget {
   const _SectionLabel(this.label);
 
   @override
-  Widget build(BuildContext context) => Text(
-        label.toUpperCase(),
-        style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.2),
+  Widget build(BuildContext context) => JsxText(
+        label.toUpperCase(), JsxTextVariant.labelSmall,
+        color: AppColors.textSecondary, letterSpacing: 1.2,
       );
 }
 

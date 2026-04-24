@@ -56,7 +56,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen>
         loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.gold)),
         error: (e, _) => Center(
-            child: Text('$e', style: const TextStyle(color: AppColors.error))),
+            child: JsxText('$e', JsxTextVariant.bodyMedium, color: AppColors.error)),
         data: (bookings) {
           final sortedBookings = bookings
             ..sort((a, b) =>
@@ -168,12 +168,8 @@ class _BookingCard extends StatelessWidget {
                       const Icon(Icons.confirmation_number_outlined,
                           size: 13, color: AppColors.textMuted),
                       const SizedBox(width: 6),
-                      Text(booking.confirmationCode,
-                          style: const TextStyle(
-                              color: AppColors.gold,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1)),
+                      JsxText(booking.confirmationCode, JsxTextVariant.labelMedium,
+                          color: AppColors.gold, letterSpacing: 1),
                     ],
                   ),
                   Row(
