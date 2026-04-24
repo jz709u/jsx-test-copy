@@ -126,28 +126,11 @@ class _EmptyResults extends StatelessWidget {
   const _EmptyResults({required this.fromCode, required this.toCode});
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.x4l),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.flight_rounded, color: AppColors.textMuted, size: 64),
-              const SizedBox(height: AppSpacing.lg),
-              Text('No flights found', style: Theme.of(context).textTheme.headlineMedium),
-              const SizedBox(height: AppSpacing.sm),
-              Text('$fromCode to $toCode is not currently a JSX route.',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyMedium),
-              const SizedBox(height: AppSpacing.xxl),
-              JsxButton(
-                label: 'Try Another Route',
-                variant: JsxButtonVariant.secondary,
-                fullWidth: false,
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        ),
+  Widget build(BuildContext context) => JsxEmptyState(
+        icon: Icons.flight_rounded,
+        title: 'No flights found',
+        subtitle: '$fromCode to $toCode is not currently a JSX route.',
+        actionLabel: 'Try Another Route',
+        onAction: () => Navigator.pop(context),
       );
 }

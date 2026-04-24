@@ -207,18 +207,9 @@ class _EmptyState extends StatelessWidget {
       {required this.icon, required this.title, required this.subtitle});
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 64, color: AppColors.textMuted),
-            const SizedBox(height: AppSpacing.lg),
-            Text(title, style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: AppSpacing.sm),
-            Text(subtitle,
-                style: AppTextStyles.bodyMedium,
-                textAlign: TextAlign.center),
-          ],
-        ),
+  Widget build(BuildContext context) => JsxEmptyState(
+        icon: icon,
+        title: title,
+        subtitle: subtitle,
       );
 }

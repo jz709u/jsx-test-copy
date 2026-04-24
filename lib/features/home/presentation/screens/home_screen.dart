@@ -110,19 +110,19 @@ class _HomeBody extends StatelessWidget {
                     .slideY(begin: 0.1, end: 0),
                 const SizedBox(height: 28),
               ],
-              _SectionHeader(title: 'Upcoming Trips', count: upcoming.length),
-              const SizedBox(height: 12),
+              JsxSectionHeader(title: 'Upcoming Trips', count: upcoming.length),
+              const SizedBox(height: AppSpacing.itemGap),
               ...upcoming.map((b) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.only(bottom: AppSpacing.itemGap),
                     child: _UpcomingBookingCard(booking: b),
                   )),
-              const SizedBox(height: 28),
+              const SizedBox(height: AppSpacing.sectionGap),
               _LoyaltyCard(user: user)
                   .animate(delay: 200.ms)
                   .fadeIn(duration: 400.ms)
                   .slideY(begin: 0.1, end: 0),
-              const SizedBox(height: 28),
-              const _SectionHeader(title: 'Popular Routes'),
+              const SizedBox(height: AppSpacing.sectionGap),
+              const JsxSectionHeader(title: 'Popular Routes'),
               const SizedBox(height: 12),
               const _PopularRoutesGrid(),
               const SizedBox(height: 32),
@@ -176,9 +176,9 @@ class _NextFlightCard extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              _InfoChip(icon: Icons.confirmation_number_outlined, label: booking.confirmationCode),
-              const SizedBox(width: 12),
-              _InfoChip(
+              JsxChip(icon: Icons.confirmation_number_outlined, label: booking.confirmationCode),
+              const SizedBox(width: AppSpacing.itemGap),
+              JsxChip(
                 icon: Icons.access_time_rounded,
                 label: daysLeft > 0 ? '$daysLeft days, ${hoursLeft}h away' : '${diff.inHours}h ${diff.inMinutes.remainder(60)}m away',
               ),
@@ -186,7 +186,7 @@ class _NextFlightCard extends StatelessWidget {
           ),
           if (booking.seatNumber != null) ...[
             const SizedBox(height: 10),
-            _InfoChip(icon: Icons.airline_seat_recline_normal, label: 'Seat ${booking.seatNumber}'),
+            JsxChip(icon: Icons.airline_seat_recline_normal, label: 'Seat ${booking.seatNumber}'),
           ],
         ],
       ),
@@ -194,46 +194,32 @@ class _NextFlightCard extends StatelessWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _InfoChip({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: AppColors.textSecondary),
-          const SizedBox(width: 5),
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w500)),
-        ],
-      );
-}
-
 class _UpcomingBookingCard extends StatelessWidget {
   final Booking booking;
   const _UpcomingBookingCard({required this.booking});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        children: [
-          FlightRouteDisplay(flight: booking.flight, compact: true),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(DateFormat('MMM d, yyyy').format(booking.flight.departureTime), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-              Text(booking.confirmationCode, style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => JsxCard(
+        child: Column(
+          children: [
+            FlightRouteDisplay(flight: booking.flight, compact: true),
+            const SizedBox(height: AppSpacing.itemGap),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(DateFormat('MMM d, yyyy').format(booking.flight.departureTime),
+                    style: AppTextStyles.bodySmall),
+                Text(booking.confirmationCode,
+                    style: const TextStyle(
+                        color: AppColors.gold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1)),
+              ],
+            ),
+          ],
+        ),
+      );
 }
 
 class _LoyaltyCard extends StatelessWidget {
@@ -306,27 +292,6 @@ class _LoyaltyStat extends StatelessWidget {
       );
 }
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final int? count;
-  const _SectionHeader({required this.title, this.count});
-
-  @override
-  Widget build(BuildContext context) => Row(
-        children: [
-          Text(title, style: Theme.of(context).textTheme.headlineMedium),
-          if (count != null) ...[
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(color: AppColors.gold.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
-              child: Text('$count', style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w700)),
-            ),
-          ],
-        ],
-      );
-}
-
 class _PopularRoutesGrid extends StatelessWidget {
   const _PopularRoutesGrid();
 
@@ -347,23 +312,6 @@ class _PopularRoutesGrid extends StatelessWidget {
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
         childAspectRatio: 2.2,
-        children: _routes.map((r) => _RouteChip(label: r.$3)).toList(),
-      );
-}
-
-class _RouteChip extends StatelessWidget {
-  final String label;
-  const _RouteChip({required this.label});
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.divider)),
-        child: Row(
-          children: [
-            Expanded(child: Text(label, style: const TextStyle(color: AppColors.white, fontSize: 12, fontWeight: FontWeight.w600))),
-            const Icon(Icons.arrow_forward_ios, size: 10, color: AppColors.textMuted),
-          ],
-        ),
+        children: _routes.map((r) => JsxChip.nav(label: r.$3)).toList(),
       );
 }
