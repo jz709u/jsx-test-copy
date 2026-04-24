@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/extensions/ref_ext.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/user.dart';
@@ -13,18 +14,16 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  Future<void> _refresh() async {
-    ref.invalidate(currentUserProvider);
-    await ref.read(currentUserProvider.future);
-  }
+  Future<void> _refresh() => ref.invalidateAndAwait(currentUserProvider);
 
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(currentUserProvider);
-    return userAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(color: AppColors.gold))),
-      error: (e, _) => Scaffold(body: Center(child: JsxText('$e', JsxTextVariant.bodyMedium, color: AppColors.error))),
-      data: (user) => _ProfileBody(user: user, onRefresh: _refresh),
+    return Scaffold(
+      body: AsyncBuilder(
+        value: userAsync,
+        data: (user) => _ProfileBody(user: user, onRefresh: _refresh),
+      ),
     );
   }
 }
@@ -35,12 +34,11 @@ class _ProfileBody extends StatelessWidget {
   const _ProfileBody({required this.user, required this.onRefresh});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        body: RefreshIndicator(
-          onRefresh: onRefresh,
-          color: AppColors.gold,
-          backgroundColor: AppColors.surface,
-          child: CustomScrollView(
+  Widget build(BuildContext context) => RefreshIndicator(
+        onRefresh: onRefresh,
+        color: AppColors.gold,
+        backgroundColor: AppColors.surface,
+        child: CustomScrollView(
             slivers: [
             SliverAppBar(
               expandedHeight: 200,
@@ -90,7 +88,6 @@ class _ProfileBody extends StatelessWidget {
             ),
           ],
           ),
-        ),
       );
 }
 

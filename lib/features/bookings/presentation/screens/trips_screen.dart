@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/extensions/ref_ext.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/booking.dart';
@@ -31,10 +32,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen>
     super.dispose();
   }
 
-  Future<void> _refresh() async {
-    ref.invalidate(bookingsProvider);
-    await ref.read(bookingsProvider.future);
-  }
+  Future<void> _refresh() => ref.invalidateAndAwait(bookingsProvider);
 
   @override
   Widget build(BuildContext context) {
@@ -52,31 +50,28 @@ class _TripsScreenState extends ConsumerState<TripsScreen>
           tabs: const [Tab(text: 'Upcoming'), Tab(text: 'Past')],
         ),
       ),
-      body: bookingsAsync.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.gold)),
-        error: (e, _) => Center(
-            child: JsxText('$e', JsxTextVariant.bodyMedium, color: AppColors.error)),
+      body: AsyncBuilder(
+        value: bookingsAsync,
         data: (bookings) {
-          final sortedBookings = bookings
+          final sorted = bookings
             ..sort((a, b) =>
                 a.flight.departureTime.compareTo(b.flight.departureTime));
-          final upcoming = sortedBookings.where((b) => b.isUpcoming).toList();
-          final past = sortedBookings.where((b) => b.isPast).toList();
+          final upcoming = sorted.where((b) => b.isUpcoming).toList();
+          final past = sorted.where((b) => b.isPast).toList();
           return TabBarView(
             controller: _tab,
             children: [
               _TripList(
                   bookings: upcoming,
                   onRefresh: _refresh,
-                  empty: const _EmptyState(
+                  empty: const JsxEmptyState(
                       icon: Icons.flight_takeoff,
                       title: 'No upcoming trips',
                       subtitle: 'Book your next adventure with JSX')),
               _TripList(
                   bookings: past,
                   onRefresh: _refresh,
-                  empty: const _EmptyState(
+                  empty: const JsxEmptyState(
                       icon: Icons.history,
                       title: 'No past trips',
                       subtitle: 'Your completed flights will appear here')),
@@ -195,17 +190,3 @@ class _BookingCard extends StatelessWidget {
       );
 }
 
-class _EmptyState extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  const _EmptyState(
-      {required this.icon, required this.title, required this.subtitle});
-
-  @override
-  Widget build(BuildContext context) => JsxEmptyState(
-        icon: icon,
-        title: title,
-        subtitle: subtitle,
-      );
-}

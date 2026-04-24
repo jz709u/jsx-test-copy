@@ -29,11 +29,16 @@ class FlightResultsScreen extends ConsumerWidget {
           ],
         ),
       ),
-      body: resultsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-        error: (e, _) => Center(child: JsxText('$e', JsxTextVariant.bodyMedium, color: AppColors.error)),
+      body: AsyncBuilder(
+        value: resultsAsync,
         data: (results) => results.isEmpty
-            ? _EmptyResults(fromCode: params.fromCode, toCode: params.toCode)
+            ? JsxEmptyState(
+                icon: Icons.flight_rounded,
+                title: 'No flights found',
+                subtitle: '${params.fromCode} to ${params.toCode} is not currently a JSX route.',
+                actionLabel: 'Try Another Route',
+                onAction: () => Navigator.pop(context),
+              )
             : ListView.separated(
                 padding: const EdgeInsets.all(AppSpacing.screenPadding),
                 itemCount: results.length,
@@ -117,17 +122,3 @@ class _FlightResultCard extends StatelessWidget {
   }
 }
 
-class _EmptyResults extends StatelessWidget {
-  final String fromCode;
-  final String toCode;
-  const _EmptyResults({required this.fromCode, required this.toCode});
-
-  @override
-  Widget build(BuildContext context) => JsxEmptyState(
-        icon: Icons.flight_rounded,
-        title: 'No flights found',
-        subtitle: '$fromCode to $toCode is not currently a JSX route.',
-        actionLabel: 'Try Another Route',
-        onAction: () => Navigator.pop(context),
-      );
-}

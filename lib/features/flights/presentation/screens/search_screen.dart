@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/widgets/jsx_text.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/airport.dart';
 import '../providers/flight_results_provider.dart';
 import '../providers/flight_search_provider.dart';
@@ -62,9 +62,8 @@ class SearchScreen extends ConsumerWidget {
                 const JsxText('POPULAR ROUTES', JsxTextVariant.labelSmall,
                     color: AppColors.textSecondary, letterSpacing: 1.5),
                 const SizedBox(height: 12),
-                airportsAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-                  error: (e, _) => JsxText('$e', JsxTextVariant.bodyMedium, color: AppColors.error),
+                AsyncBuilder(
+                  value: airportsAsync,
                   data: (airports) => Column(
                     children: airports
                         .take(6)

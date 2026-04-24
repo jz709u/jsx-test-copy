@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/extensions/ref_ext.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../bookings/domain/entities/booking.dart';
@@ -22,24 +23,18 @@ class HomeScreen extends ConsumerWidget {
     ref.watch(minuteTickerProvider);
 
     return Scaffold(
-      body: userAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-        error: (e, _) => Center(child: JsxText('Error: $e', JsxTextVariant.bodyMedium, color: AppColors.error)),
-        data: (user) => bookingsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-          error: (e, _) => Center(child: JsxText('Error: $e', JsxTextVariant.bodyMedium, color: AppColors.error)),
+      body: AsyncBuilder(
+        value: userAsync,
+        data: (user) => AsyncBuilder(
+          value: bookingsAsync,
           data: (bookings) => _HomeBody(
-          user: user,
-          bookings: bookings,
-          onRefresh: () async {
-            ref.invalidate(currentUserProvider);
-            ref.invalidate(bookingsProvider);
-            await Future.wait([
-              ref.read(currentUserProvider.future),
-              ref.read(bookingsProvider.future),
-            ]);
-          },
-        ),
+            user: user,
+            bookings: bookings,
+            onRefresh: () => Future.wait([
+              ref.invalidateAndAwait(currentUserProvider),
+              ref.invalidateAndAwait(bookingsProvider),
+            ]),
+          ),
         ),
       ),
     );

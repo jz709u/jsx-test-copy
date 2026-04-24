@@ -124,9 +124,8 @@ class _FlightTrackingScreenState extends ConsumerState<FlightTrackingScreen> {
           ),
         ],
       ),
-      body: trackAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.gold)),
-        error: (e, _) => Center(child: JsxText('$e', JsxTextVariant.bodyMedium, color: AppColors.error)),
+      body: AsyncBuilder(
+        value: trackAsync,
         data: (track) => _TrackingBody(flight: widget.flight, track: track),
       ),
     );
