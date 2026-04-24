@@ -211,18 +211,11 @@ class _CheckInBanner extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => JsxCard(
         padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: BoxDecoration(
-          color: _canCheckIn
-              ? AppColors.gold.withValues(alpha: 0.1)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-              color: _canCheckIn
-                  ? AppColors.gold.withValues(alpha: 0.4)
-                  : AppColors.divider),
-        ),
+        radius: 14,
+        color: _canCheckIn ? AppColors.gold.withValues(alpha: 0.1) : AppColors.surface,
+        borderColor: _canCheckIn ? AppColors.gold.withValues(alpha: 0.4) : AppColors.divider,
         child: Row(
           children: [
             Icon(

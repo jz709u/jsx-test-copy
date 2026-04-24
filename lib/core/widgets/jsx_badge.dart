@@ -7,12 +7,21 @@ import '../../features/bookings/domain/entities/booking.dart';
 ///
 /// Prefer the typed constructors [JsxBadge.flightStatus] and
 /// [JsxBadge.bookingStatus] which handle color/label mapping automatically.
+///
+/// Use [JsxBadge.pill] for a label-only badge without a dot or border —
+/// suited for membership and status labels inside cards.
 class JsxBadge extends StatelessWidget {
   const JsxBadge({
     super.key,
     required this.label,
     required this.color,
+    this.showDot = true,
   });
+
+  /// Label-only pill badge: no dot indicator, no border, wider padding.
+  /// Defaults to [AppColors.gold].
+  factory JsxBadge.pill(String label, {Color color = AppColors.gold, Key? key}) =>
+      JsxBadge(key: key, label: label, color: color, showDot: false);
 
   /// Badge for a [FlightStatus] value.
   factory JsxBadge.flightStatus(FlightStatus status, {Key? key}) {
@@ -35,27 +44,35 @@ class JsxBadge extends StatelessWidget {
   final String label;
   final Color color;
 
+  /// When false (pill mode) the dot indicator, border, and extra horizontal
+  /// padding are omitted.
+  final bool showDot;
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: 3,
+      padding: EdgeInsets.symmetric(
+        horizontal: showDot ? AppSpacing.sm : 10,
+        vertical: showDot ? 3 : 4,
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(AppRadius.badge),
-        border: Border.all(color: color.withValues(alpha: 0.4), width: 0.5),
+        border: showDot
+            ? Border.all(color: color.withValues(alpha: 0.4), width: 0.5)
+            : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 5),
+          if (showDot) ...[
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 5),
+          ],
           Text(
             label,
             style: TextStyle(

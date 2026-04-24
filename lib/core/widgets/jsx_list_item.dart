@@ -37,7 +37,11 @@ class JsxListGroup extends StatelessWidget {
 }
 
 /// A tappable row with an icon badge, label, optional value, and optional
-/// trailing chevron. Intended to live inside [JsxListGroup].
+/// trailing widget. Intended to live inside [JsxListGroup].
+///
+/// Supply [trailing] to render a custom widget (e.g. a status badge or
+/// action button) at the end of the row. When [trailing] is null and
+/// [showChevron] is true (the default) a standard chevron icon is shown.
 class JsxListItem extends StatelessWidget {
   const JsxListItem({
     super.key,
@@ -46,6 +50,7 @@ class JsxListItem extends StatelessWidget {
     required this.onTap,
     this.value,
     this.labelColor,
+    this.trailing,
     this.showChevron = true,
   });
 
@@ -54,6 +59,9 @@ class JsxListItem extends StatelessWidget {
   final String? value;
   final Color? labelColor;
   final VoidCallback onTap;
+
+  /// Custom trailing widget. Takes precedence over [showChevron] when set.
+  final Widget? trailing;
   final bool showChevron;
 
   @override
@@ -86,7 +94,9 @@ class JsxListItem extends StatelessWidget {
                   ],
                 ),
               ),
-              if (showChevron)
+              if (trailing != null)
+                trailing!
+              else if (showChevron)
                 const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
             ],
           ),

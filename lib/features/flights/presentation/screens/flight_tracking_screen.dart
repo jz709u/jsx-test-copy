@@ -351,13 +351,9 @@ class _PhaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return JsxCard(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.gold.withValues(alpha: 0.2)),
-      ),
+      borderColor: AppColors.gold.withValues(alpha: 0.2),
       child: Row(
         children: [
           Container(
@@ -434,9 +430,7 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+    return JsxCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -473,19 +467,14 @@ class _EtaCard extends StatelessWidget {
     final isLanded = track.phase == FlightTrackPhase.landed;
     final isPre = track.phase == FlightTrackPhase.preDeparture;
 
-    return Container(
+    return JsxGradientCard(
+      colors: isLanded
+          ? [const Color(0xFF0D2518), const Color(0xFF1A1B25)]
+          : [const Color(0xFF2A1F00), const Color(0xFF1A1B25)],
+      borderColor: isLanded ? AppColors.success : AppColors.gold,
+      borderAlpha: 0.25,
+      radius: 16,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isLanded
-              ? [const Color(0xFF0D2518), const Color(0xFF1A1B25)]
-              : [const Color(0xFF2A1F00), const Color(0xFF1A1B25)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: (isLanded ? AppColors.success : AppColors.gold).withValues(alpha: 0.25)),
-      ),
       child: Row(
         children: [
           Icon(
@@ -527,9 +516,7 @@ class _FlightInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(16)),
+    return JsxCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

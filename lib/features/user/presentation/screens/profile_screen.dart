@@ -118,11 +118,7 @@ class _ProfileHeader extends StatelessWidget {
                 JsxText(user.fullName, JsxTextVariant.headlineLarge),
                 JsxText(user.email, JsxTextVariant.titleSmall, color: AppColors.textSecondary),
                 const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.gold.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
-                  child: JsxText('Club JSX Member since ${user.memberSince}', JsxTextVariant.labelSmall, color: AppColors.gold),
-                ),
+                JsxBadge.pill('Club JSX Member since ${user.memberSince}'),
               ],
             ),
           ),

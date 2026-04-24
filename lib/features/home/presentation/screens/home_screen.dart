@@ -224,11 +224,7 @@ class _LoyaltyCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const JsxText('CLUB JSX', JsxTextVariant.labelSmall, color: AppColors.gold, letterSpacing: 1.5),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: AppColors.gold.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
-                child: const JsxText('Member', JsxTextVariant.labelSmall, color: AppColors.gold),
-              ),
+              JsxBadge.pill('Member'),
             ],
           ),
           const SizedBox(height: 16),
