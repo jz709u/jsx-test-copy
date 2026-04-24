@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/extensions/date_format_ext.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/booking.dart';
@@ -38,12 +38,9 @@ class TripDetailScreen extends StatelessWidget {
                         children: [
                           JsxDetailRow('Flight', booking.flight.id),
                           JsxDetailRow('Aircraft', booking.flight.aircraft),
-                          JsxDetailRow('Date',
-                              DateFormat('EEEE, MMMM d, yyyy').format(booking.flight.departureTime)),
-                          JsxDetailRow('Departure',
-                              DateFormat('h:mm a').format(booking.flight.departureTime)),
-                          JsxDetailRow('Arrival',
-                              DateFormat('h:mm a').format(booking.flight.arrivalTime)),
+                          JsxDetailRow('Date', booking.flight.departureTime.longDate),
+                          JsxDetailRow('Departure', booking.flight.departureTime.timeFormat),
+                          JsxDetailRow('Arrival', booking.flight.arrivalTime.timeFormat),
                           JsxDetailRow('Duration', booking.flight.durationString),
                           if (booking.seatNumber != null)
                             JsxDetailRow('Seat', '${booking.seatNumber}'),
@@ -77,8 +74,7 @@ class TripDetailScreen extends StatelessWidget {
                         children: [
                           JsxDetailRow('Total Paid',
                               '\$${booking.totalPaid.toStringAsFixed(0)}'),
-                          JsxDetailRow('Booked On',
-                              DateFormat('MMM d, yyyy').format(booking.bookedAt)),
+                          JsxDetailRow('Booked On', booking.bookedAt.shortDate),
                         ],
                       ),
                     ),

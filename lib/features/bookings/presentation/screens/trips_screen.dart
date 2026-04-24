@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/extensions/date_format_ext.dart';
 import '../../../../core/extensions/ref_ext.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
@@ -136,9 +136,7 @@ class _BookingCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      JsxText(
-                          DateFormat('EEE, MMM d, yyyy')
-                              .format(booking.flight.departureTime),
+                      JsxText(booking.flight.departureTime.mediumDate,
                           JsxTextVariant.bodySmall),
                       JsxBadge.bookingStatus(booking.status),
                     ],

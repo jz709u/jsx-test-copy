@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/extensions/date_format_ext.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/flight.dart';
@@ -40,9 +40,9 @@ class BookingConfirmationScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.itemGap),
                   JsxDetailRow('Flight', flight.id),
                   JsxDetailRow('Aircraft', flight.aircraft),
-                  JsxDetailRow('Date', DateFormat('EEEE, MMMM d, yyyy').format(flight.departureTime)),
-                  JsxDetailRow('Departure', DateFormat('h:mm a').format(flight.departureTime)),
-                  JsxDetailRow('Arrival', DateFormat('h:mm a').format(flight.arrivalTime)),
+                  JsxDetailRow('Date', flight.departureTime.longDate),
+                  JsxDetailRow('Departure', flight.departureTime.timeFormat),
+                  JsxDetailRow('Arrival', flight.arrivalTime.timeFormat),
                   JsxDetailRow('Duration', flight.durationString),
                 ],
               ),
@@ -181,9 +181,7 @@ class _SuccessScreen extends StatelessWidget {
                       JsxText(confirmationCode, JsxTextVariant.displayMedium,
                           color: AppColors.gold, letterSpacing: 3),
                       const SizedBox(height: AppSpacing.itemGap),
-                      JsxText(
-                          DateFormat('EEE, MMM d · h:mm a')
-                              .format(flight.departureTime),
+                      JsxText(flight.departureTime.compactDateTime,
                           JsxTextVariant.bodyMedium),
                     ],
                   ),

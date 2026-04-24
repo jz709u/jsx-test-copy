@@ -1,5 +1,5 @@
 import 'package:home_widget/home_widget.dart';
-import 'package:intl/intl.dart';
+import '../../../core/extensions/date_format_ext.dart';
 import '../../bookings/domain/entities/booking.dart';
 import '../domain/entities/flight.dart';
 
@@ -34,14 +34,12 @@ class WidgetUpdateService {
       });
     } else {
       final flight = booking.flight;
-      final timeFmt = DateFormat('h:mm a');
-
       await _saveAll({
         'jsx_has_flight': true,
         'jsx_origin': flight.origin.code,
         'jsx_destination': flight.destination.code,
         'jsx_route': '${flight.origin.code}→${flight.destination.code}',
-        'jsx_departure_time': timeFmt.format(flight.departureTime),
+        'jsx_departure_time': flight.departureTime.timeFormat,
         'jsx_status': flight.status.label,
         'jsx_confirmation': booking.confirmationCode,
         'jsx_departure_ts': flight.departureTime.toUtc().toIso8601String(),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/extensions/date_format_ext.dart';
 import '../../../../core/extensions/ref_ext.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
@@ -71,8 +71,7 @@ class _HomeBody extends StatelessWidget {
               children: [
                 JsxText('Good ${_greeting()}, ${user.firstName}',
                     JsxTextVariant.headlineLarge),
-                JsxText(DateFormat('EEEE, MMMM d').format(DateTime.now()),
-                    JsxTextVariant.labelMedium),
+                JsxText(DateTime.now().longDateNoYear, JsxTextVariant.labelMedium),
               ],
             ),
           ),
@@ -195,7 +194,7 @@ class _UpcomingBookingCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                JsxText(DateFormat('MMM d, yyyy').format(booking.flight.departureTime),
+                JsxText(booking.flight.departureTime.shortDate,
                     JsxTextVariant.bodySmall),
                 JsxText(booking.confirmationCode, JsxTextVariant.labelMedium,
                     color: AppColors.gold, letterSpacing: 1),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/extensions/date_format_ext.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/flight.dart';
@@ -24,7 +24,7 @@ class FlightResultsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('${params.fromCode} → ${params.toCode}'),
-            JsxText('${DateFormat('MMM d').format(params.date)} · $passengers pax',
+            JsxText('${params.date.shortMonthDay} · $passengers pax',
                 JsxTextVariant.labelMedium),
           ],
         ),

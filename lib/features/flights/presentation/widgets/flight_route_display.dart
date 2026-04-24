@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/extensions/date_format_ext.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/flight.dart';
 
@@ -11,13 +11,12 @@ class FlightRouteDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final timeFmt = DateFormat('h:mm a');
     return Row(
       children: [
         _AirportCol(
           code: flight.origin.code,
           city: flight.origin.city,
-          time: timeFmt.format(flight.departureTime),
+          time: flight.departureTime.timeFormat,
           compact: compact,
           align: CrossAxisAlignment.start,
         ),
@@ -56,7 +55,7 @@ class FlightRouteDisplay extends StatelessWidget {
         _AirportCol(
           code: flight.destination.code,
           city: flight.destination.city,
-          time: timeFmt.format(flight.arrivalTime),
+          time: flight.arrivalTime.timeFormat,
           compact: compact,
           align: CrossAxisAlignment.end,
         ),

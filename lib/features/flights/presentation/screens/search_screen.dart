@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import '../../../../core/extensions/date_format_ext.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../domain/entities/airport.dart';
@@ -232,7 +232,7 @@ class _SearchCard extends StatelessWidget {
             _FieldRow(
               icon: Icons.calendar_today_outlined,
               label: 'Date',
-              value: DateFormat('EEE, MMM d, yyyy').format(state.date),
+              value: state.date.mediumDate,
               hasValue: true,
               onTap: onDateTap,
             ),
